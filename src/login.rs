@@ -68,9 +68,23 @@ pub fn Login() -> impl IntoView {
     let email_input_element: NodeRef<html::Input> = create_node_ref();
     let password_input_element: NodeRef<html::Input> = create_node_ref();
 
-    let action = create_action(|input: &(String, String)|{
+    let (failed_response, set_failed_response) = create_signal(false);
+
+    let action = create_action(move |input: &(String, String)|{
         let input_copy = input.to_owned();
-        async move { handle_request(input_copy.0.clone(), input_copy.1.clone()).await; }
+        async move {
+            let result = handle_request(input_copy.0.clone(), input_copy.1.clone()).await;
+            match result {
+                Ok(v) => {
+                    logging::log!("{:?}",v);
+                    set_failed_response(false);
+                }
+                Err(v) => {
+                    logging::log!("{:?}",v);
+                    set_failed_response(true);
+                }
+            }
+        }
 
     });
 
@@ -97,10 +111,13 @@ pub fn Login() -> impl IntoView {
                         <p class="text-xs-center">
                             <a href="/register">Need an account?</a>
                         </p>
-
-                        <ul class="error-messages">
-                            <li>That email is already taken</li>
-                        </ul>
+                        <Show
+                            when=move || { failed_response.get() }
+                        >
+                            <ul class="error-messages">
+                                <li>Email or password were wrong</li>
+                            </ul>
+                        </Show>
 
                         <form on:submit=on_submit>
                             <fieldset class="form-group">
