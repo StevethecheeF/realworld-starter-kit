@@ -1,0 +1,9 @@
+[package]
+name = "rust_app"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+leptos = { version = "0.6.14", features = ["csr", "nightly"] }
+reqwest = { version = "0.12.5", features = ["blocking", "json"] }
+serde = { version = "1.0.208", features = ["derive"] }
