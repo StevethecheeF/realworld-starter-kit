@@ -1,12 +1,29 @@
 mod login;
 mod register;
 mod types;
+mod navigation;
 
 use leptos_router::*;
 use leptos::*;
+use crate::types::UserInfo;
 
 fn main() {
+    let user_info = create_rw_signal(UserInfo{
+        email: None,
+        token: None,
+        username: None,
+        bio: None,
+        image: None,
+    });
+    provide_context(user_info);
+
     mount_to_body(|| view! {
+        <nav class="navbar navbar-light">
+            <div class="container">
+                <a class="navbar-brand" href="/">conduit</a>
+                <navigation::Navigation/>
+            </div>
+        </nav>
         <Router>
           <main>
             <Routes>
@@ -16,5 +33,14 @@ fn main() {
             </Routes>
           </main>
         </Router>
+        <footer>
+            <div class="container">
+                <a href="/" class="logo-font">conduit</a>
+                <span class="attribution">
+                    An interactive learning project from <a href="https://thinkster.io">Thinkster</a>. Code &amp;
+                    design licensed under MIT.
+                </span>
+            </div>
+        </footer>
     })
 }

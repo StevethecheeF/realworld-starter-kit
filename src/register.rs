@@ -42,6 +42,8 @@ pub fn Register() -> impl IntoView {
 
     let (failed_response, set_failed_response) = create_signal(false);
 
+    let user_info = expect_context::<RwSignal<UserInfo>>();
+
     let action = create_action(move |input: &(String, String, String)|{
         let input_copy = input.to_owned();
         async move {
@@ -49,7 +51,8 @@ pub fn Register() -> impl IntoView {
             match result {
                 Ok(v) => {
                     logging::log!("{:?}",v);
-                    LocalStorage::set(SESSION_TOKEN,v.user.token).expect("failed to set");
+                    LocalStorage::set(SESSION_TOKEN, &v.user.token).expect("failed to set");
+                    user_info.set(v.user);
                     set_failed_response(false);
                 }
                 Err(v) => {

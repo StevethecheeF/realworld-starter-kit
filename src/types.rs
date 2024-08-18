@@ -29,17 +29,15 @@ pub struct LoginInfoWrapper {
 
 #[derive(Serialize,Deserialize, Clone, Debug, PartialEq, Eq, Default)]
 pub struct UserInfo {
-    pub email: String,
-    pub token: String,
-    pub username: String,
+    pub email: Option<String>,
+    pub token: Option<String>,
+    pub username: Option<String>,
     pub bio: Option<String>,
     pub image: Option<String>,
 }
 
 impl UserInfo {
-    pub fn is_authenticated(&self) -> bool {
-        !self.token.is_empty()
-    }
+    pub fn is_authenticated(&self) -> bool { self.token.is_some() }
 }
 
 #[derive(Serialize,Deserialize, Clone, Debug, PartialEq, Eq)]
