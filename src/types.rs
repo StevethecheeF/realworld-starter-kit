@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-pub const SESSION_TOKEN:&str = "sesseion.token";
+pub const SESSION_TOKEN:&str = "session.token";
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
 #[serde(rename_all = "camelCase")]

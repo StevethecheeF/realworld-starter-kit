@@ -1,5 +1,4 @@
 use leptos::*;
-use serde::{Deserialize, Serialize};
 use super::types::*;
 use gloo::storage::{LocalStorage, Storage};
 
@@ -48,7 +47,7 @@ pub fn Login() -> impl IntoView {
             match result {
                 Ok(v) => {
                     logging::log!("{:?}",v);
-                    LocalStorage::set(SESSION_TOKEN,v.user.token);
+                    LocalStorage::set(SESSION_TOKEN,v.user.token).expect("failed to set");
                     set_failed_response(false);
                 }
                 Err(v) => {
