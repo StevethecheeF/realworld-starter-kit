@@ -1,6 +1,7 @@
 use leptos::*;
 use serde::{Deserialize, Serialize};
 use super::types::*;
+use gloo::storage::{LocalStorage, Storage};
 
 async fn handle_request(email_value:String, password_value:String) -> Result<UserInfoWrapper, String>{
     let user_data = LoginInfo {
@@ -47,6 +48,7 @@ pub fn Login() -> impl IntoView {
             match result {
                 Ok(v) => {
                     logging::log!("{:?}",v);
+                    LocalStorage::set(SESSION_TOKEN,v.user.token);
                     set_failed_response(false);
                 }
                 Err(v) => {

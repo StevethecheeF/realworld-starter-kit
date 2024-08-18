@@ -1,5 +1,7 @@
 use serde::{Deserialize, Serialize};
 
+pub const SESSION_TOKEN:&str = "sesseion.token";
+
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct RegisterInfo {
