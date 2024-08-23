@@ -133,7 +133,7 @@ pub fn Profile() -> impl IntoView {
     });
 
     let on_follow_click = move |_| {
-        follow_action.dispatch(1);
+        follow_action.dispatch(());
     };
 
     view! {

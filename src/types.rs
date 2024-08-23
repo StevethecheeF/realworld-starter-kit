@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use chrono::prelude::*;
 
 pub const SESSION_TOKEN:&str = "session.token";
 
@@ -56,4 +57,36 @@ pub struct ProfileInfo {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct ProfileInfoWrapper {
     pub profile: ProfileInfo,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
+pub struct ArticleCreateUpdateInfo {
+    pub title: String,
+    pub description: String,
+    pub body: String,
+    pub tag_list: Option<Vec<String>>,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct ArticleCreateUpdateInfoWrapper {
+    pub article: ArticleCreateUpdateInfo,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct ArticleInfo {
+    pub slug: String,
+    pub title: String,
+    pub description: String,
+    pub body: String,
+    pub tag_list: Vec<String>,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
+    pub favorited: bool,
+    pub favorites_count: u32,
+    pub author: ProfileInfo,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct ArticleInfoWrapper {
+    pub article: ArticleInfo,
 }
