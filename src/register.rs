@@ -61,7 +61,6 @@ pub fn Register() -> impl IntoView {
                 }
             }
         }
-
     });
 
     let on_submit = move |ev: leptos::ev::SubmitEvent| {

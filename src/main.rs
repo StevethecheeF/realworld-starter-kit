@@ -2,6 +2,7 @@ mod login;
 mod register;
 mod types;
 mod navigation;
+mod profile;
 
 use leptos_router::*;
 use leptos::*;
@@ -30,6 +31,7 @@ fn main() {
               <Route path="/" view=|| view! { <h1>"Home page"</h1> }/>/>
               <Route path="/login" view=login::Login/>
               <Route path="/register" view=register::Register/>
+              <Route path="/profile/:user_id" view=profile::Profile/>
             </Routes>
           </main>
         </Router>
