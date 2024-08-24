@@ -50,55 +50,41 @@ pub fn Profile() -> impl IntoView {
                 .unwrap_or_default()
         })
     };
-    let (is_following,set_is_following) =create_signal(false);
-    let (user_bio,set_user_bio) =create_signal("".to_string());
-    let (user_username,set_user_username) =create_signal("".to_string());
-    let (user_icon,set_user_icon) =create_signal("".to_string());
 
     let async_data = create_resource(
         user_id,
         move |value| async move {
             let client = reqwest::Client::new();
             let response = client
-                .get("http://localhost:3000/api/profiles/".to_owned() + &value.unwrap_or_default())
+                .get("http://localhost:3000/api/profiles/".to_owned() + &user_id().unwrap_or_default())
                 .header("Content-Type", "application/json")
                 .send()
-                .await;
-            if let Ok(data) = response {
-                if data.status().is_success() {
-                    let data: Result<ProfileInfoWrapper, _> = data.json::<ProfileInfoWrapper>().await;
-                    if let Ok(data) = data {
-                        set_is_following(data.clone().profile.following);
-                        set_user_bio(data.clone().profile.bio.unwrap_or_default());
-                        set_user_username(data.clone().profile.username);
-                        set_user_icon(data.clone().profile.image);
-                        Some(data)
-                    } else {
-                        None
-                    }
-                } else {
-                    None
-                }
-            } else {
-                None
+                .await
+                .ok()?;
+
+            if !response.status().is_success() {
+                return None;
             }
+
+            let data = response.json::<ProfileInfoWrapper>().await.ok()?;
+            Some(data)
         },
     );
 
     let user_info = expect_context::<RwSignal<UserInfo>>();
 
     // follow
-    let follow_text = move || {
-        if is_following.get() {
+    let follow_text = move |is_following| {
+        if is_following {
             "Unfollow ".to_owned() + &user_id().unwrap_or_default()
-        } else {
+        }else {
             "Follow ".to_owned() + &user_id().unwrap_or_default()
         }
     };
 
     let follow_action = create_action(move |_|{
         async move {
-            if is_following.get(){
+            if async_data.get().unwrap().unwrap().profile.following{
                 let client = reqwest::Client::new();
                 let response = client
                     .post("http://localhost:3000/api/profiles/".to_owned() + &user_id().unwrap_or_default() + "/follow")
@@ -109,7 +95,7 @@ pub fn Profile() -> impl IntoView {
                     if data.status().is_success() {
                         let data: Result<ProfileInfoWrapper, _> = data.json::<ProfileInfoWrapper>().await;
                         if let Ok(data) = data {
-                            set_is_following(data.clone().profile.following);
+                            //set_is_following(data.clone().profile.following);
                         }
                     }
                 }
@@ -124,7 +110,7 @@ pub fn Profile() -> impl IntoView {
                     if data.status().is_success() {
                         let data: Result<ProfileInfoWrapper, _> = data.json::<ProfileInfoWrapper>().await;
                         if let Ok(data) = data {
-                            set_is_following(data.clone().profile.following);
+                            //set_is_following(data.clone().profile.following);
                         }
                     }
                 }
@@ -142,17 +128,25 @@ pub fn Profile() -> impl IntoView {
         <div class="container">
           <div class="row">
             <div class="col-xs-12 col-md-10 offset-md-1">
-              <img src=user_icon class="user-img" />
-              <h4> { user_username } </h4>
-              <p> { user_bio } </p>
-              <button class="btn btn-sm btn-outline-secondary action-btn" on:click=on_follow_click>
-                <i class="ion-plus-round"></i>
-                { follow_text }
-              </button>
-              <button class="btn btn-sm btn-outline-secondary action-btn">
-                <i class="ion-gear-a"></i>
-                &nbsp; Edit Profile Settings
-              </button>
+              {
+                move || match async_data.get() {
+                  Some(Some(profile)) => view! {
+                    <img src=profile.profile.image class="user-img" />
+                    <h4> { profile.profile.username } </h4>
+                    <p> { profile.profile.bio } </p>
+                    <button class="btn btn-sm btn-outline-secondary action-btn" on:click=on_follow_click>
+                      <i class="ion-plus-round"></i>
+                      { follow_text(profile.profile.following) }
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary action-btn">
+                      <i class="ion-gear-a"></i>
+                      &nbsp; Edit Profile Settings
+                    </button>
+                  }.into_view(),
+                  Some(_) => view! { <p>"Failed to load profile."</p> }.into_view(),
+                  None => view! { <p>"Loading profile..."</p> }.into_view(),
+                }
+              }
             </div>
           </div>
         </div>
