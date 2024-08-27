@@ -52,8 +52,8 @@ pub fn Profile() -> impl IntoView {
     };
 
     let async_data = create_resource(
-        user_id,
-        move |value| async move {
+        || (),
+        move |_| async move {
             let client = reqwest::Client::new();
             let response = client
                 .get("http://localhost:3000/api/profiles/".to_owned() + &user_id().unwrap_or_default())
