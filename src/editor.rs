@@ -19,52 +19,22 @@ pub fn Editor() -> impl IntoView {
         })
     };
 
-    let (title, set_title) = create_signal("".to_string());
-    let (description, set_description) = create_signal("".to_string());
-    let (body, set_body) = create_signal("".to_string());
-    let (tags,set_tags) = create_signal("".to_string());
+    let title_input_element: NodeRef<html::Input> = create_node_ref();
+    let description_input_element: NodeRef<html::Input> = create_node_ref();
+    let tag_input_element: NodeRef<html::Input> = create_node_ref();
+    let body_input_element: NodeRef<html::Textarea> = create_node_ref();
+    let (tags,set_tags) = create_signal(vec![]);
 
-    let async_data = create_resource(
-        || (),
-        move |_| async move {
-            if slug().is_none() {
-                return None;
-            }
-            let client = reqwest::Client::new();
-            let response = client
-                .get("http://localhost:3000/api/articles/".to_owned() + &slug().unwrap_or_default())
-                .header("Content-Type", "application/json")
-                .send()
-                .await;
-            if let Ok(data) = response {
-                if data.status().is_success() {
-                    let data: Result<ProfileInfoWrapper, _> = data.json::<ProfileInfoWrapper>().await;
-                    if let Ok(data) = data {
-                        Some(data)
-                    } else {
-                        None
-                    }
-                } else {
-                    None
-                }
-            } else {
-                None
-            }
-        },
-    );
+    let save_action = create_action(move |input:&(String,String,String) |{
+        let input_copy = input.to_owned();
 
-    let save_action = create_action(move |_|{
         async move {
-            if title.get() == ""{
-                return;
-            }
-            let tag_list = tags.get().split(" ").map(|s| s.to_string()).collect();
             let client = reqwest::Client::new();
             let info = ArticleCreateUpdateInfo {
-                description: description.get(),
-                title: title.get(),
-                body: body.get(),
-                tag_list: Some(tag_list),
+                title: input_copy.0,
+                description: input_copy.1,
+                body: input_copy.2,
+                tagList: tags.get(),
             };
             let info_wrapper = ArticleCreateUpdateInfoWrapper {
                 article: info,
@@ -94,12 +64,79 @@ pub fn Editor() -> impl IntoView {
         }
     });
 
+    let async_data = create_resource(
+        || (),
+        move |_| async move {
+            if slug().is_none() {
+                let article_info = ArticleCreateUpdateInfo {
+                    title:"".to_string(),
+                    tagList:vec![].into(),
+                    description:"".to_string(),
+                    body:"".to_string()
+                };
+                return Some(article_info);
+            }
+            let client = reqwest::Client::new();
+            let response = client
+                .get("http://localhost:3000/api/articles/".to_owned() + &slug().unwrap_or_default())
+                .header("Content-Type", "application/json")
+                .send()
+                .await
+                .ok()?;
+
+            if !response.status().is_success() {
+                return None;
+            }
+            let data = response.json::<ArticleInfoWrapper>().await.ok()?;
+            set_tags(data.article.tagList.clone());
+            let article_info = ArticleCreateUpdateInfo {
+                title:data.article.title,
+                tagList:data.article.tagList,
+                description:data.article.description,
+                body:data.article.body,
+            };
+            Some(article_info)
+        },
+    );
+
+    let (need_title, set_need_title) = create_signal(false);
+
     let on_submit = move |_| {
-        logging::log!("{:?}",title.get());
-        logging::log!("{:?}",description.get());
-        logging::log!("{:?}",body.get());
-        logging::log!("{:?}",tags.get());
-        save_action.dispatch(())
+        let title_value = title_input_element()
+            .expect("<input> should be mounted")
+            .value();
+        if title_value.to_string() == "".to_string() {
+            set_need_title(true);
+            return;
+        }
+        let body_value = body_input_element()
+            .expect("<input> should be mounted")
+            .value();
+        let description_value = description_input_element()
+            .expect("<input> should be mounted")
+            .value();
+
+        save_action.dispatch((title_value.to_string(),description_value.to_string(),body_value.to_string()))
+    };
+
+    let on_keypress = move |e: leptos::ev::KeyboardEvent| {
+        // Prevent submit the form when press Enter
+        if e.key() == "Enter" {
+            e.prevent_default();
+        }
+    };
+    let on_keyup = move |e: leptos::ev::KeyboardEvent| {
+        // Add a new tag when press Enter
+        if e.key() == "Enter" {
+            e.prevent_default();
+            // Add a new tag
+            let tag_value = tag_input_element()
+                .expect("<input> should be mounted")
+                .value();
+            logging::log!("debug2: {:?}", tag_value);
+
+            set_tags.update(|n| n.push(tag_value.to_string()));
+        }
     };
 
     view! {
@@ -108,22 +145,23 @@ pub fn Editor() -> impl IntoView {
         <div class="row">
           <div class="col-md-10 offset-md-1 col-xs-12">
           <Show
-            when=move || { title() == "" }
+            when=move || { need_title.get() }
           >
-          <ul class="error-messages">
+            <ul class="error-messages">
               <li>That title is required</li>
             </ul>
-        </Show>
-            <form>
+          </Show>
+          <form>
+            {
+                move || match async_data.get() {
+                  Some(Some(article)) => view! {
                 <fieldset class="form-group">
                   <input
                     type="text"
                     class="form-control form-control-lg"
                     placeholder="Article Title"
-                    prop:value=title
-                    on:input=move |ev| {
-                        set_title(event_target_value(&ev));
-                    }
+                    prop:value=article.title
+                    node_ref=title_input_element
                   />
                 </fieldset>
                 <fieldset class="form-group">
@@ -131,10 +169,8 @@ pub fn Editor() -> impl IntoView {
                     type="text"
                     class="form-control"
                     placeholder="What's this article about?"
-                    prop:value=description
-                    on:input=move |ev| {
-                        set_description(event_target_value(&ev));
-                    }
+                    prop:value=article.description
+                    node_ref=description_input_element
                   />
                 </fieldset>
                 <fieldset class="form-group">
@@ -142,12 +178,10 @@ pub fn Editor() -> impl IntoView {
                     class="form-control"
                     rows="8"
                     placeholder="Write your article (in markdown)"
-                    prop:value=move || body.get()
-                    on:input=move |ev| {
-                        set_body(event_target_value(&ev));
-                    }
+                    prop:value=article.body.clone()
+                    node_ref=body_input_element
                   >
-                    { body.get_untracked() }
+                    { article.body }
                   </textarea>
                 </fieldset>
                 <fieldset class="form-group">
@@ -155,23 +189,30 @@ pub fn Editor() -> impl IntoView {
                     type="text"
                     class="form-control"
                     placeholder="Enter tags"
-                    prop:value=tags
-                    on:input=move |ev| {
-                        set_tags(event_target_value(&ev));
-                    }
+                    on:keyup=on_keyup
+                    on:keypress=on_keypress
+                    node_ref=tag_input_element
                   />
                   <div class="tag-list">
-                    <span class="tag-default tag-pill"> <i class="ion-close-round"></i> tag </span>
+                    {
+                      tags().into_iter()
+                        .map(|n| view! { <span class="tag-default tag-pill"> <i class="ion-close-round"></i> {n} </span> })
+                        .collect::<Vec<_>>()
+                    }
                   </div>
                 </fieldset>
-                <button class="btn btn-lg pull-xs-right btn-primary" type="button" on:click=on_submit>
-                  Publish Article
-                </button>
-            </form>
+                }.into_view(),
+                Some(_) => view! { <p>"Failed to load profile."</p> }.into_view(),
+                None => view! { <p>"Loading profile..."</p> }.into_view(),
+              }
+            }
+            <button class="btn btn-lg pull-xs-right btn-primary" type="button" on:click=on_submit>
+              Publish Article
+            </button>
+          </form>
           </div>
         </div>
       </div>
     </div>
     }
-
 }
