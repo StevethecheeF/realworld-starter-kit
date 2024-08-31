@@ -1,6 +1,7 @@
 use leptos::*;
 use super::types::*;
 use leptos_router::*;
+use gloo::storage::{LocalStorage, Storage};
 
 #[derive(Params, PartialEq)]
 struct ContactParams {
@@ -42,7 +43,6 @@ async fn handle_request(username_value:String, email_value:String, password_valu
 #[component]
 pub fn Profile() -> impl IntoView {
     let params = use_params::<ContactParams>();
-
     let user_id = move || {
         params.with(|params| {
             params.as_ref()
@@ -50,9 +50,10 @@ pub fn Profile() -> impl IntoView {
                 .unwrap_or_default()
         })
     };
+    let (is_following, set_is_following) = create_signal(false);
 
     let async_data = create_resource(
-        || (),
+        user_id,
         move |_| async move {
             let client = reqwest::Client::new();
             let response = client
@@ -67,6 +68,7 @@ pub fn Profile() -> impl IntoView {
             }
 
             let data = response.json::<ProfileInfoWrapper>().await.ok()?;
+            set_is_following.set(data.clone().profile.following);
             Some(data)
         },
     );
@@ -84,37 +86,51 @@ pub fn Profile() -> impl IntoView {
 
     let follow_action = create_action(move |_|{
         async move {
-            if async_data.get().unwrap().unwrap().profile.following{
-                let client = reqwest::Client::new();
-                let response = client
-                    .post("http://localhost:3000/api/profiles/".to_owned() + &user_id().unwrap_or_default() + "/follow")
-                    .header("Content-Type", "application/json")
-                    .send()
-                    .await;
-                if let Ok(data) = response {
-                    if data.status().is_success() {
-                        let data: Result<ProfileInfoWrapper, _> = data.json::<ProfileInfoWrapper>().await;
-                        if let Ok(data) = data {
-                            //set_is_following(data.clone().profile.following);
+            match async_data.get() {
+                Some(Some(profile_info)) =>{
+                    logging::log!("{:?}",profile_info.profile.following);
+                    if profile_info.profile.following{
+                        let client = reqwest::Client::new();
+                        let mut builder = client
+                            .delete("http://localhost:3000/api/profiles/".to_owned() + &user_id().unwrap_or_default() + "/follow")
+                            .header("Content-Type", "application/json");
+                        if let Ok(token) = LocalStorage::get::<String>(SESSION_TOKEN) {
+                            builder = builder.bearer_auth(token);
+                        }
+                        let response = builder.send()
+                            .await;
+                        if let Ok(data) = response {
+                            if data.status().is_success() {
+                                let data: Result<ProfileInfoWrapper, _> = data.json::<ProfileInfoWrapper>().await;
+                                if let Ok(data) = data {
+                                    async_data.set(Some(data));
+                                    set_is_following(false);
+                                }
+                            }
+                        }
+                    } else {
+                        let client = reqwest::Client::new();
+                        let mut builder = client
+                            .post("http://localhost:3000/api/profiles/".to_owned() + &user_id().unwrap_or_default() + "/follow")
+                            .header("Content-Type", "application/json");
+                        if let Ok(token) = LocalStorage::get::<String>(SESSION_TOKEN) {
+                            builder = builder.bearer_auth(token);
+                        }
+                        let response = builder.send()
+                            .await;
+                        if let Ok(data) = response {
+                            if data.status().is_success() {
+                                let data: Result<ProfileInfoWrapper, _> = data.json::<ProfileInfoWrapper>().await;
+                                if let Ok(data) = data {
+                                    async_data.set(Some(data));
+                                    set_is_following(true);
+                                }
+                            }
                         }
                     }
                 }
-            } else {
-                let client = reqwest::Client::new();
-                let response = client
-                    .delete("http://localhost:3000/api/profiles/".to_owned() + &user_id().unwrap_or_default() + "/follow")
-                    .header("Content-Type", "application/json")
-                    .send()
-                    .await;
-                if let Ok(data) = response {
-                    if data.status().is_success() {
-                        let data: Result<ProfileInfoWrapper, _> = data.json::<ProfileInfoWrapper>().await;
-                        if let Ok(data) = data {
-                            //set_is_following(data.clone().profile.following);
-                        }
-                    }
-                }
-            }
+                _ => logging::log!("no profile data")
+            };
         }
     });
 
@@ -140,7 +156,7 @@ pub fn Profile() -> impl IntoView {
                     </button>
                     <button class="btn btn-sm btn-outline-secondary action-btn">
                       <i class="ion-gear-a"></i>
-                      &nbsp; Edit Profile Settings
+                      Edit Profile Settings
                     </button>
                   }.into_view(),
                   Some(_) => view! { <p>"Failed to load profile."</p> }.into_view(),
