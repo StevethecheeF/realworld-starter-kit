@@ -61,7 +61,7 @@ pub fn Setting() -> impl IntoView{
       let password_value = password_input_element()
           .expect("<input> should be mounted")
           .value();
-      let mut password_option_value = None;
+      let mut password_option_value: Option<String> = Default::default();
       if password_value.to_string() != "".to_string(){
         password_option_value = Some(password_value.to_string());
       }
@@ -76,6 +76,13 @@ pub fn Setting() -> impl IntoView{
           .value();
 
       action.dispatch((username_value.to_string(), email_value.to_string(), password_option_value,bio_value.to_string(),image_value.to_string()));
+    };
+
+    let on_logout_click = move |ev: leptos::ev::MouseEvent| {
+      user_info.set(UserInfo::default());
+      LocalStorage::delete(SESSION_TOKEN);
+      let navigate = leptos_router::use_navigate();
+      navigate("/", Default::default());
     };
     view! {
     <div class="settings-page">
@@ -144,7 +151,7 @@ pub fn Setting() -> impl IntoView{
               </fieldset>
             </form>
             <hr />
-            <button class="btn btn-outline-danger">Or click here to logout.</button>
+            <button class="btn btn-outline-danger" on:click=on_logout_click>Or click here to logout.</button>
           </div>
         </div>
       </div>

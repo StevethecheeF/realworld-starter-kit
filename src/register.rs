@@ -50,13 +50,13 @@ pub fn Register() -> impl IntoView {
             let result = handle_request(input_copy.0.clone(), input_copy.1.clone(), input_copy.2.clone()).await;
             match result {
                 Ok(v) => {
-                    logging::log!("{:?}",v);
                     LocalStorage::set(SESSION_TOKEN, &v.user.token).expect("failed to set");
                     user_info.set(v.user);
                     set_failed_response(false);
+                    let navigate = leptos_router::use_navigate();
+                    navigate("/", Default::default());
                 }
                 Err(v) => {
-                    logging::log!("{:?}",v);
                     set_failed_response(true);
                 }
             }

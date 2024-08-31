@@ -11,13 +11,7 @@ use leptos::*;
 use crate::types::UserInfo;
 
 fn main() {
-    let user_info = create_rw_signal(UserInfo{
-        email: None,
-        token: None,
-        username: None,
-        bio: None,
-        image: None,
-    });
+    let user_info = create_rw_signal(UserInfo::default());
     provide_context(user_info);
 
     mount_to_body(|| view! {

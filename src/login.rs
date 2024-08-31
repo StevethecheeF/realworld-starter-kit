@@ -52,9 +52,10 @@ pub fn Login() -> impl IntoView {
                     LocalStorage::set(SESSION_TOKEN, &v.user.token).expect("failed to set");
                     user_info.set(v.user);
                     set_failed_response(false);
+                    let navigate = leptos_router::use_navigate();
+                    navigate("/", Default::default());
                 }
                 Err(v) => {
-                    logging::log!("{:?}",v);
                     set_failed_response(true);
                 }
             }
