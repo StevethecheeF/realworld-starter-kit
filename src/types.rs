@@ -95,7 +95,7 @@ pub struct ArticleInfoWrapper {
 pub struct UserUpdateInfo {
     pub email: String,
     pub username: String,
-    pub password: Option<String>,
+    pub password: String,
     pub image: String,
     pub bio: String,
 }

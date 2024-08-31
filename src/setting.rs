@@ -12,7 +12,7 @@ pub fn Setting() -> impl IntoView{
     let password_input_element: NodeRef<html::Input> = create_node_ref();
 
     let (need_name, set_need_name) = create_signal(false);
-    let action = create_action(move |input: &(String, String, Option<String>, String, String)|{
+    let action = create_action(move |input: &(String, String, String, String, String)|{
       let input_copy = input.to_owned();
       let user_update_info = UserUpdateInfo{
         image:input_copy.4,
@@ -61,10 +61,6 @@ pub fn Setting() -> impl IntoView{
       let password_value = password_input_element()
           .expect("<input> should be mounted")
           .value();
-      let mut password_option_value: Option<String> = Default::default();
-      if password_value.to_string() != "".to_string(){
-        password_option_value = Some(password_value.to_string());
-      }
       let image_value = image_input_element()
           .expect("<input> should be mounted")
           .value();
@@ -75,7 +71,7 @@ pub fn Setting() -> impl IntoView{
           .expect("<input> should be mounted")
           .value();
 
-      action.dispatch((username_value.to_string(), email_value.to_string(), password_option_value,bio_value.to_string(),image_value.to_string()));
+      action.dispatch((username_value.to_string(), email_value.to_string(), password_value,bio_value.to_string(),image_value.to_string()));
     };
 
     let on_logout_click = move |ev: leptos::ev::MouseEvent| {
