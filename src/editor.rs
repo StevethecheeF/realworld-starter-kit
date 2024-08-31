@@ -46,7 +46,7 @@ pub fn Editor() -> impl IntoView {
                 if let Ok(token) = LocalStorage::get::<String>(SESSION_TOKEN) {
                     builder = builder.bearer_auth(token);
                 }
-                builder.json(&info_wrapper)
+                let _ = builder.json(&info_wrapper)
                     .send()
                     .await;
             }else {
@@ -56,7 +56,7 @@ pub fn Editor() -> impl IntoView {
                 if let Ok(token) = LocalStorage::get::<String>(SESSION_TOKEN) {
                     builder = builder.bearer_auth(token);
                 }
-                builder.json(&info_wrapper)
+                let _ = builder.json(&info_wrapper)
                     .send()
                     .await;
             }
@@ -133,7 +133,6 @@ pub fn Editor() -> impl IntoView {
             let tag_value = tag_input_element()
                 .expect("<input> should be mounted")
                 .value();
-            logging::log!("debug2: {:?}", tag_value);
 
             set_tags.update(|n| n.push(tag_value.to_string()));
         }

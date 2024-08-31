@@ -90,3 +90,17 @@ pub struct ArticleInfo {
 pub struct ArticleInfoWrapper {
     pub article: ArticleInfo,
 }
+
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
+pub struct UserUpdateInfo {
+    pub email: String,
+    pub username: String,
+    pub password: Option<String>,
+    pub image: String,
+    pub bio: String,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct UserUpdateInfoWrapper {
+    pub user: UserUpdateInfo,
+}

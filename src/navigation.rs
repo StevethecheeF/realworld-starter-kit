@@ -4,12 +4,12 @@ use super::types::*;
 #[component]
 pub fn Navigation() -> impl IntoView {
     let user_info = expect_context::<RwSignal<UserInfo>>();
-    let (user_info_username, set_user_info_username) = create_slice(
+    let (user_info_username, _) = create_slice(
         user_info,
         |user_info| user_info.username.clone(),
         |user_info, username| user_info.username = username,
     );
-    let (user_info_is_authenticated, set_user_info_is_authenticated) = create_slice(
+    let (user_info_is_authenticated, _) = create_slice(
         user_info,
         |user_info| user_info.token.clone(),
         |user_info, token| user_info.token = token,
