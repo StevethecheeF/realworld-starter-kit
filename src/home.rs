@@ -41,6 +41,7 @@ pub fn Home() -> impl IntoView {
   let (tab_tag, set_tab_tag) = create_signal(String::default());
 
   // article data
+  let (current_page, set_current_page) = create_signal(1);
   let (article_data, set_article_data) = create_signal(vec![]);
   let (article_count, set_article_count) = create_signal(0);
 
@@ -54,11 +55,13 @@ pub fn Home() -> impl IntoView {
       if let Ok(token) = LocalStorage::get::<String>(SESSION_TOKEN) {
         builder = builder.bearer_auth(token);
       }
-
+      let offset = (current_page.get() - 1) * 20;
+      let mut query = vec![("offset",offset.to_string())];
       if let Some(tag) = input_copy {
-        let query = vec![("tag",tag)];
-        builder = builder.query(&query);
+         query.push(("tag", tag));
       }
+      builder = builder.query(&query);
+
       let response = builder
           .send()
           .await
@@ -75,6 +78,8 @@ pub fn Home() -> impl IntoView {
 
   let feed_article_request = create_action(move |_| {
     let client = reqwest::Client::new();
+    let offset = (current_page.get() - 1) * 20;
+
     async move {
       let mut builder = client
           .get("http://localhost:3000/api/articles/feed".to_owned())
@@ -82,6 +87,9 @@ pub fn Home() -> impl IntoView {
       if let Ok(token) = LocalStorage::get::<String>(SESSION_TOKEN) {
         builder = builder.bearer_auth(token);
       }
+      let mut query = vec![("offset",offset.to_string())];
+      builder = builder.query(&query);
+
       let response = builder
           .send()
           .await
@@ -97,29 +105,42 @@ pub fn Home() -> impl IntoView {
     }
   });
 
+  let send_article_request = move |current_tab: Tab| {
+    match current_tab {
+      Tab::Global => {
+        global_article_request.dispatch(None);
+      }
+      Tab::Personal => {
+        feed_article_request.dispatch(());
+      }
+      Tab::Keyword => {
+        global_article_request.dispatch(Some(tab_tag.get()))
+      }
+    }
+  };
+
   let async_article_list = create_resource(
     current_tab,
     move |current_tab| async move {
-      match current_tab {
-        Tab::Global => {
-          logging::log!("global");
-          global_article_request.dispatch(None);
-        }
-        Tab::Personal => {
-          logging::log!("personal");
-          feed_article_request.dispatch(());
-        }
-        Tab::Keyword => {
-          global_article_request.dispatch(Some(tab_tag.get()))
-        }
-      }
+      send_article_request(current_tab);
     },
   );
 
-  // pagination
-  let (current_page, set_current_page) = create_signal(1);
-  let available_pages = move || (article_count.get() / 20) +1 ;
 
+
+  // pagination
+  let available_pages = move || {
+    let page_count = (article_count.get() / 20) + 2;
+    (1..page_count).collect::<Vec<_>>()
+
+  };
+  let on_pagination_click = move |page: u32| {
+    logging::log!("a");
+    if current_page.get() != page {
+      set_current_page(page);
+      send_article_request(current_tab.get());
+    }
+  };
 
     view! {
         <div class="home-page">
@@ -139,11 +160,11 @@ pub fn Home() -> impl IntoView {
                       when=move || { user_info_is_authenticated().is_some() }
                     >
                       <li class="nav-item">
-                        <a class="nav-link" href="" on:click=move |_| set_current_tab(Tab::Personal)>Your Feed</a>
+                        <a class="nav-link" on:click=move |_| set_current_tab(Tab::Personal)>Your Feed</a>
                       </li>
                     </Show>
                     <li class="nav-item">
-                      <a class="nav-link active" href="" on:click=move |_| set_current_tab(Tab::Global)>Global Feed</a>
+                      <a class="nav-link active" on:click=move |_| set_current_tab(Tab::Global)>Global Feed</a>
                     </li>
                   </ul>
                 </div>
@@ -155,12 +176,15 @@ pub fn Home() -> impl IntoView {
                   <home_article_list_item::HomeArticleListItem article=child />
                 </For>
                 <ul class="pagination">
-                  {(0..(available_pages())).collect::<Vec<_>>().into_iter()
-                    .map(|n| view! {
-                      <li class="page-item active">
-                        <a class="page-link" href="">{n}</a>
-                      </li>
-                  }).collect_view()}
+                 <For
+                    each=available_pages
+                    key=|n| n.clone()
+                    let:child
+                  >
+                    <li class="page-item">
+                      <a class="page-link" href="" on:click=move |_| on_pagination_click(child.clone())>{child}</a>
+                    </li>
+                </For>
                 </ul>
               </div>
 
