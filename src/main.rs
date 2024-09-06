@@ -5,6 +5,9 @@ mod navigation;
 mod profile;
 mod editor;
 mod setting;
+mod article;
+mod home;
+mod home_article_list_item;
 
 use leptos_router::*;
 use leptos::*;
@@ -24,7 +27,7 @@ fn main() {
         <Router>
           <main>
             <Routes>
-              <Route path="/" view=|| view! { <h1>"Home page"</h1> }/>/>
+              <Route path="/" view=home::Home/>/>
               <Route path="/login" view=login::Login/>
               <Route path="/register" view=register::Register/>
               <Route path="/profile/:user_id" view=profile::Profile/>

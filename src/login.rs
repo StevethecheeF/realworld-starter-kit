@@ -55,7 +55,7 @@ pub fn Login() -> impl IntoView {
                     let navigate = leptos_router::use_navigate();
                     navigate("/", Default::default());
                 }
-                Err(v) => {
+                Err(_) => {
                     set_failed_response(true);
                 }
             }
