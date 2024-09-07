@@ -37,7 +37,7 @@ pub fn Home() -> impl IntoView {
     },
   );
 
-  let (current_tab, set_current_tab) = create_signal(Tab::Global);
+  let (current_tab, set_current_tab) = create_signal("Global".to_string());
   let (tab_tag, set_tab_tag) = create_signal(String::default());
 
   // article data
@@ -79,7 +79,6 @@ pub fn Home() -> impl IntoView {
   let feed_article_request = create_action(move |_| {
     let client = reqwest::Client::new();
     let offset = (current_page.get() - 1) * 20;
-
     async move {
       let mut builder = client
           .get("http://localhost:3000/api/articles/feed".to_owned())
@@ -105,15 +104,15 @@ pub fn Home() -> impl IntoView {
     }
   });
 
-  let send_article_request = move |current_tab: Tab| {
-    match current_tab {
-      Tab::Global => {
+  let send_article_request = move |current_tab: String| {
+    match current_tab.as_str() {
+      "Global" => {
         global_article_request.dispatch(None);
       }
-      Tab::Personal => {
+      "Personal" => {
         feed_article_request.dispatch(());
       }
-      Tab::Keyword => {
+      _ => {
         global_article_request.dispatch(Some(tab_tag.get()))
       }
     }
@@ -122,7 +121,8 @@ pub fn Home() -> impl IntoView {
   let async_article_list = create_resource(
     current_tab,
     move |current_tab| async move {
-      send_article_request(current_tab);
+      set_current_page(1);
+      send_article_request(current_tab.to_string());
     },
   );
 
@@ -138,7 +138,7 @@ pub fn Home() -> impl IntoView {
     logging::log!("a");
     if current_page.get() != page {
       set_current_page(page);
-      send_article_request(current_tab.get());
+      send_article_request(current_tab.get().to_string());
     }
   };
 
@@ -160,12 +160,19 @@ pub fn Home() -> impl IntoView {
                       when=move || { user_info_is_authenticated().is_some() }
                     >
                       <li class="nav-item">
-                        <a class="nav-link" on:click=move |_| set_current_tab(Tab::Personal)>Your Feed</a>
+                        <a class="nav-link" on:click=move |_| {set_current_tab("Personal".to_string());set_tab_tag(String::default());}>Your Feed</a>
                       </li>
                     </Show>
                     <li class="nav-item">
-                      <a class="nav-link active" on:click=move |_| set_current_tab(Tab::Global)>Global Feed</a>
+                      <a class="nav-link" on:click=move |_| {set_current_tab("Global".to_string());set_tab_tag(String::default());}>Global Feed</a>
                     </li>
+                    <Show
+                      when=move || tab_tag() != String::default()
+                    >
+                      <li class="nav-item">
+                        <a class="nav-link">#{tab_tag()}</a>
+                      </li>
+                    </Show>
                   </ul>
                 </div>
                 <For
@@ -204,7 +211,7 @@ pub fn Home() -> impl IntoView {
                                 let tag_owned =tag.to_owned();
                                 let onclick = move |_| {
                                   set_tab_tag(tag_owned.clone());
-                                  set_current_tab(Tab::Keyword);
+                                  set_current_tab(tag_owned.clone());
                                 };
                                 view!{<a href="" class="tag-pill tag-default" on:click=onclick>{tag}</a>}
                              }
