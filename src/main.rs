@@ -8,6 +8,8 @@ mod setting;
 mod article;
 mod home;
 mod home_article_list_item;
+mod article_comments;
+mod helper;
 
 use leptos_router::*;
 use leptos::*;
@@ -34,6 +36,7 @@ fn main() {
               <Route path="/settings" view=setting::Setting/>
               <Route path="/editor" view=editor::Editor/>
               <Route path="/editor/:slug" view=editor::Editor/>
+              <Route path="/article/:slug" view=article::Article/>
             </Routes>
           </main>
         </Router>

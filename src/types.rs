@@ -115,10 +115,3 @@ pub struct ArticleListInfo {
     pub articles: Vec<ArticleInfo>,
     pub articlesCount: u32,
 }
-
-#[derive(PartialEq, Eq, Clone, Debug)]
-pub enum Tab {
-    Global,
-    Personal,
-    Keyword,
-}

@@ -1,161 +1,242 @@
 use leptos::*;
+use leptos_router::*;
 use super::types::*;
+use super::helper::favorite_article_action;
+use gloo::storage::{LocalStorage, Storage};
+
+#[derive(Params, PartialEq)]
+struct ContactParams {
+	slug: Option<String>,
+}
 
 #[component]
-pub fn Article(article:ReadSignal<ArticleInfo>) -> impl IntoView {
-    let user_info = expect_context::<RwSignal<UserInfo>>();
-    let (user_info_username, _) = create_slice(
-      user_info,
-      |user_info| user_info.username.clone(),
-      |user_info, username| user_info.username = username,
-    );
-    let can_edit = move || {
-      match user_info_username() {
-        Some(v) => v == article.get().author.username,
-        None => false,
-      }
-    };
-    let profile_link = move || {
-      let prefix = "/profile/";
-      let username = article.get().author.username;
-      return prefix.to_string() + &*username;
-    };
-    let creation_date = move || {
-      return article.get().createdAt.format("%B %e, %Y").to_string();
-    };
-    view! {
+pub fn Article() -> impl IntoView {
+	let params = use_params::<ContactParams>();
+	let slug = move || {
+		params.with(|params| {
+			params.as_ref()
+				.map(|params| params.slug.clone())
+				.unwrap_or_default()
+		})
+	};
+
+	let article_data = create_resource(
+		|| (),
+		move |_| async move {
+			if slug().is_none() {
+				return None;
+			}
+			let client = reqwest::Client::new();
+			let response = client
+				.get("http://localhost:3000/api/articles/".to_owned() + &slug().unwrap_or_default())
+				.header("Content-Type", "application/json")
+				.send()
+				.await
+				.ok()?;
+
+			if !response.status().is_success() {
+				return None;
+			}
+			let data = response.json::<ArticleInfoWrapper>().await.ok()?;
+			Some(data.article)
+		},
+	);
+
+	let user_info = expect_context::<RwSignal<UserInfo>>();
+	let (user_info_username, _) = create_slice(
+		user_info,
+		|user_info| user_info.username.clone(),
+		|user_info, username| user_info.username = username,
+	);
+	let can_edit = move || {
+		match user_info_username() {
+			Some(v) => {
+				match article_data.get(){
+					Some(Some(article)) =>v == article.author.username,
+					_=>false
+				}
+			},
+			None => false,
+		}
+	};
+	let profile_link = move || {
+		let prefix = "/profile/";
+		match article_data.get(){
+			Some(Some(article)) =>"/profile/".to_string() +  &*article.author.username,
+			_=>"".to_string()
+		}
+	};
+	let creation_date = move || {
+		match article_data.get(){
+			Some(Some(article)) => article.createdAt.format("%B %e, %Y").to_string(),
+			_=>"".to_string()
+		}
+	};
+	let follow_text = move || {
+		match article_data.get(){
+			Some(Some(article)) => {
+				if article.author.following {
+				"Follow ".to_string() + &*article.author.username
+				} else {
+				"Unfollow ".to_string() + &*article.author.username
+				}
+			},
+			_=>"".to_string()
+		}
+	};
+	let profile_link = move || {
+		let prefix = "/editor/";
+		match article_data.get(){
+			Some(Some(article)) =>"/profile/".to_string() +  &*article.slug,
+			_=>"".to_string()
+		}
+	};
+	let favorite_article_action = create_action(move |_| {
+		async move {
+			if let Some(Some(article_date_some)) = article_data.get() {
+				let data = favorite_article_action(article_date_some.favorited, &*article_date_some.slug).await;
+				article_data.set(data.clone());
+				Some(())
+			}else {
+				None
+			}
+		}
+	});
+
+	let favorite_article = move |_| {
+		favorite_article_action.dispatch(());
+	};
+
+
+	let delete_article_action = create_action(move |_| {
+		async move {
+			match article_data.get() {
+				Some(Some(article)) => {
+					let client = reqwest::Client::new();
+					let mut builder = client
+						.delete("http://localhost:3000/api/articles/".to_owned() + &slug().unwrap_or_default())
+						.header("Content-Type", "application/json");
+
+					if let Ok(token) = LocalStorage::get::<String>(SESSION_TOKEN) {
+						builder = builder.bearer_auth(token);
+					}
+
+					let response=	builder.send()
+						.await
+						.ok()?;
+
+					if !response.status().is_success() {
+						return None;
+					}
+					let navigate = leptos_router::use_navigate();
+					navigate("/", Default::default());
+					Some(())
+				},
+				_ => None
+			}
+		}
+	});
+
+	let delete_article = move |_| {
+		delete_article_action.dispatch(());
+	};
+	view! {
     <div class="article-page">
-      <div class="banner">
-        <div class="container">
-          <h1>How to build webapps that scale</h1>
+        {move || match article_data.get() {
+			Some(Some(article)) => view! {
+			<div class="banner">
+				<div class="container">
+				  <h1>{article.title}</h1>
 
-          <div class="article-meta">
-            <a href="/profile/eric-simons"><img src=article.get().author.image alt=article.get().author.username /></a>
-            <div class="info">
-              <a href=profile_link class="author">{article.get().author.username}</a>
-              <span class="date">{creation_date}</span>
-            </div>
-            <button class="btn btn-sm btn-outline-secondary">
-              <i class="ion-plus-round"></i>
-              {move || if article.get().author.following {
-                "Follow ".to_string() + &*article.get().author.username
-              } else {
-                "Unfollow ".to_string() + &*article.get().author.username
-              }}
-              <span class="counter"></span>
-            </button>
-            &nbsp;&nbsp;
-            <button class="btn btn-sm btn-outline-primary">
-              <i class="ion-heart"></i>
-              Favorite Post <span class="counter">({article.get().favoritesCount})</span>
-            </button>
-            <Show
-              when=move || {can_edit()}
-              fallback=move || view! {<span></span>}
-            >
-              <button class="btn btn-sm btn-outline-secondary">
-                <i class="ion-edit"></i> Edit Article
-              </button>
-              <button class="btn btn-sm btn-outline-danger">
-                <i class="ion-trash-a"></i> Delete Article
-              </button>
-            </Show>
-          </div>
-        </div>
-      </div>
+				  <div class="article-meta">
+					<a href="/profile/eric-simons"><img src=article.author.image.clone() alt=article.author.username.clone() /></a>
+					<div class="info">
+					  <a href=profile_link class="author">{article.author.username.clone()}</a>
+					  <span class="date">{creation_date}</span>
+					</div>
+					<button class="btn btn-sm btn-outline-secondary">
+					  <i class="ion-plus-round"></i>
+					  {follow_text}
+					  <span class="counter"></span>
+					</button>
+					<button class="btn btn-sm btn-outline-primary" on:click=favorite_article>
+					  <i class="ion-heart"></i>
+					  Favorite Post <span class="counter">{article.favoritesCount}</span>
+					</button>
+					<Show
+					  when=move || {can_edit()}
+					  fallback=move || view! {<span></span>}
+					>
+					  <button class="btn btn-sm btn-outline-secondary">
+						<i class="ion-edit"></i> Edit Article
+					  </button>
+					  <button class="btn btn-sm btn-outline-danger">
+						<i class="ion-trash-a"></i> Delete Article
+					  </button>
+					</Show>
+				  </div>
+				</div>
+			  </div>
 
-      <div class="container page">
-        <div class="row article-content">
-          <div class="col-md-12">
-            <p>
-              Web development technologies have evolved at an incredible clip over the past few years.
-            </p>
-            <h2 id="introducing-ionic">Introducing RealWorld.</h2>
-            <p>It s a great solution for learning how other frameworks work.</p>
-            <ul class="tag-list">
-              <li class="tag-default tag-pill tag-outline">realworld</li>
-              <li class="tag-default tag-pill tag-outline">implementations</li>
-            </ul>
-          </div>
-        </div>
+			  <div class="container page">
+				<div class="row article-content">
+				  <div class="col-md-12">
+					<p>
+					  {article.description}
+					</p>
+					<p>{article.body}</p>
+					<ul class="tag-list">
+						<For
+						  each=move || article.tagList.clone()
+						  key=|tag| tag.clone()
+						  children=move |tag| {
+							let tag_owned =tag.to_owned();
+							view!{<li class="tag-default tag-pill tag-outline">{tag}</li>}
+						 }
+						/>
+					</ul>
+				  </div>
+				</div>
 
-        <hr />
+				<hr />
 
-        <div class="article-actions">
-          <div class="article-meta">
-            <a href="profile.html"><img src="http://i.imgur.com/Qr71crq.jpg" /></a>
-            <div class="info">
-              <a href="" class="author">Eric Simons</a>
-              <span class="date">January 20th</span>
-            </div>
+				<div class="article-actions">
+				  <div class="article-meta">
+					<a href=profile_link><img src=article.author.image /></a>
+					<div class="info">
+					  <a href="" class="author">{article.author.username.clone()}</a>
+					  <span class="date">{creation_date}</span>
+					</div>
 
-            <button class="btn btn-sm btn-outline-secondary">
-              <i class="ion-plus-round"></i>
-              &nbsp; Follow Eric Simons
-            </button>
-            &nbsp;
-            <button class="btn btn-sm btn-outline-primary">
-              <i class="ion-heart"></i>
-              &nbsp; Favorite Article <span class="counter">(29)</span>
-            </button>
-            <button class="btn btn-sm btn-outline-secondary">
-              <i class="ion-edit"></i> Edit Article
-            </button>
-            <button class="btn btn-sm btn-outline-danger">
-              <i class="ion-trash-a"></i> Delete Article
-            </button>
-          </div>
-        </div>
+					<button class="btn btn-sm btn-outline-secondary">
+					  <i class="ion-plus-round"></i>
+					  {follow_text}
+					</button>
+					<button class="btn btn-sm btn-outline-primary" on:click=favorite_article>
+					  <i class="ion-heart"></i>
+					  Favorite Article <span class="counter">{article.favoritesCount}</span>
+					</button>
+					<Show
+						when=move || Some(article.author.username.clone()) == user_info_username.get()
+						fallback=|| view! { }
+					>
+						<button class="btn btn-sm btn-outline-secondary" href=profile_link >
+						  <i class="ion-edit"></i> Edit Article
+						</button>
+						<button class="btn btn-sm btn-outline-danger" on:click=delete_article>
+						  <i class="ion-trash-a"></i> Delete Article
+						</button>
+					</Show>
+				  </div>
+				</div>
 
-        <div class="row">
-          <div class="col-xs-12 col-md-8 offset-md-2">
-            <form class="card comment-form">
-              <div class="card-block">
-                <textarea class="form-control" placeholder="Write a comment..." rows="3"></textarea>
-              </div>
-              <div class="card-footer">
-                <img src="http://i.imgur.com/Qr71crq.jpg" class="comment-author-img" />
-                <button class="btn btn-sm btn-primary">Post Comment</button>
-              </div>
-            </form>
 
-            <div class="card">
-              <div class="card-block">
-                <p class="card-text">
-                  With supporting text below as a natural lead-in to additional content.
-                </p>
-              </div>
-              <div class="card-footer">
-                <a href="/profile/author" class="comment-author">
-                  <img src="http://i.imgur.com/Qr71crq.jpg" class="comment-author-img" />
-                </a>
-                &nbsp;
-                <a href="/profile/jacob-schmidt" class="comment-author">Jacob Schmidt</a>
-                <span class="date-posted">Dec 29th</span>
-              </div>
-            </div>
-
-            <div class="card">
-              <div class="card-block">
-                <p class="card-text">
-                  With supporting text below as a natural lead-in to additional content.
-                </p>
-              </div>
-              <div class="card-footer">
-                <a href="/profile/author" class="comment-author">
-                  <img src="http://i.imgur.com/Qr71crq.jpg" class="comment-author-img" />
-                </a>
-                &nbsp;
-                <a href="/profile/jacob-schmidt" class="comment-author">Jacob Schmidt</a>
-                <span class="date-posted">Dec 29th</span>
-                <span class="mod-options">
-                  <i class="ion-trash-a"></i>
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+			  </div>
+			}.into_view(),
+			Some(_) => view! { <p>"Failed to load."</p> }.into_view(),
+			None => view! { <p>"Loading..."</p> }.into_view(),
+            }
+        }
     </div>
     }
 }

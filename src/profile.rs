@@ -2,6 +2,7 @@ use leptos::*;
 use super::types::*;
 use leptos_router::*;
 use gloo::storage::{LocalStorage, Storage};
+use super::helper::follow_user;
 
 #[derive(Params, PartialEq)]
 struct ContactParams {
@@ -69,7 +70,7 @@ pub fn Profile() -> impl IntoView {
 
             let data = response.json::<ProfileInfoWrapper>().await.ok()?;
             set_is_following.set(data.clone().profile.following);
-            Some(data)
+            Some(data.profile)
         },
     );
 
@@ -88,46 +89,12 @@ pub fn Profile() -> impl IntoView {
         async move {
             match async_data.get() {
                 Some(Some(profile_info)) =>{
-                    logging::log!("{:?}",profile_info.profile.following);
-                    if profile_info.profile.following{
-                        let client = reqwest::Client::new();
-                        let mut builder = client
-                            .delete("http://localhost:3000/api/profiles/".to_owned() + &user_id().unwrap_or_default() + "/follow")
-                            .header("Content-Type", "application/json");
-                        if let Ok(token) = LocalStorage::get::<String>(SESSION_TOKEN) {
-                            builder = builder.bearer_auth(token);
-                        }
-                        let response = builder.send()
-                            .await;
-                        if let Ok(data) = response {
-                            if data.status().is_success() {
-                                let data: Result<ProfileInfoWrapper, _> = data.json::<ProfileInfoWrapper>().await;
-                                if let Ok(data) = data {
-                                    async_data.set(Some(data));
-                                    set_is_following(false);
-                                }
-                            }
-                        }
-                    } else {
-                        let client = reqwest::Client::new();
-                        let mut builder = client
-                            .post("http://localhost:3000/api/profiles/".to_owned() + &user_id().unwrap_or_default() + "/follow")
-                            .header("Content-Type", "application/json");
-                        if let Ok(token) = LocalStorage::get::<String>(SESSION_TOKEN) {
-                            builder = builder.bearer_auth(token);
-                        }
-                        let response = builder.send()
-                            .await;
-                        if let Ok(data) = response {
-                            if data.status().is_success() {
-                                let data: Result<ProfileInfoWrapper, _> = data.json::<ProfileInfoWrapper>().await;
-                                if let Ok(data) = data {
-                                    async_data.set(Some(data));
-                                    set_is_following(true);
-                                }
-                            }
-                        }
+                    let profile_info_option = follow_user(profile_info.following,&*user_id().unwrap_or_default()).await;
+                    if let Some(profile_info) = profile_info_option {
+                        async_data.set(Option::from(profile_info.clone()));
+                        set_is_following(profile_info.following);
                     }
+
                 }
                 _ => logging::log!("no profile data")
             };
@@ -147,12 +114,12 @@ pub fn Profile() -> impl IntoView {
               {
                 move || match async_data.get() {
                   Some(Some(profile)) => view! {
-                    <img src=profile.profile.image class="user-img" />
-                    <h4> { profile.profile.username } </h4>
-                    <p> { profile.profile.bio } </p>
+                    <img src=profile.image class="user-img" />
+                    <h4> { profile.username } </h4>
+                    <p> { profile.bio } </p>
                     <button class="btn btn-sm btn-outline-secondary action-btn" on:click=on_follow_click>
                       <i class="ion-plus-round"></i>
-                      { follow_text(profile.profile.following) }
+                      { follow_text(profile.following) }
                     </button>
                     <button class="btn btn-sm btn-outline-secondary action-btn">
                       <i class="ion-gear-a"></i>

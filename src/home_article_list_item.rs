@@ -1,6 +1,7 @@
 use leptos::*;
 use crate::types::*;
 use gloo::storage::{LocalStorage, Storage};
+use super::helper::favorite_article_action;
 
 #[component]
 pub fn HomeArticleListItem(article: ArticleInfo) -> impl IntoView {
@@ -12,36 +13,15 @@ pub fn HomeArticleListItem(article: ArticleInfo) -> impl IntoView {
   let (favorite_count, set_favorite_count) = create_signal(article_clone.get().favoritesCount);
 
   let favorite_article_action = create_action(move |_| {
-    let client = reqwest::Client::new();
-    let mut url = "http://localhost:3000/api/articles/".to_owned();
-    url.push_str(&*article_clone.get().slug);
-    url.push_str("/favorite");
-
     async move {
-      let mut builder;
-      logging::log!("{:?}",article_clone.get().favorited);
-      if article_clone.get().favorited {
-        builder = client.delete(url.to_owned());
-      } else {
-        builder = client.post(url.to_owned());
+      let data = favorite_article_action(article_clone.get().favorited,&*article_clone.get().slug).await;
+      if let Some(article_info) = data {
+        set_article_clone(article_info.clone());
+        set_favorite_count(article_info.favoritesCount);
+        Some(())
+      }else {
+        None
       }
-      builder = builder.header("Content-Type", "application/json");
-
-      if let Ok(token) = LocalStorage::get::<String>(SESSION_TOKEN) {
-        builder = builder.bearer_auth(token);
-      }
-      let response = builder
-          .send()
-          .await
-          .ok()?;
-      if !response.status().is_success() {
-        return None;
-      }
-
-      let data = response.json::<ArticleInfoWrapper>().await.ok()?;
-      set_article_clone(data.article.clone());
-      set_favorite_count(data.article.favoritesCount);
-      Some(())
     }
   });
 
