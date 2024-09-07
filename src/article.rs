@@ -3,6 +3,7 @@ use leptos_router::*;
 use super::types::*;
 use super::helper::favorite_article_action;
 use gloo::storage::{LocalStorage, Storage};
+use super::helper::follow_user;
 
 #[derive(Params, PartialEq)]
 struct ContactParams {
@@ -75,10 +76,11 @@ pub fn Article() -> impl IntoView {
 	let follow_text = move || {
 		match article_data.get(){
 			Some(Some(article)) => {
+				logging::log!("here, {:?}",article.author.following);
 				if article.author.following {
-				"Follow ".to_string() + &*article.author.username
+					"Unfollow ".to_string() + &*article.author.username
 				} else {
-				"Unfollow ".to_string() + &*article.author.username
+					"Follow ".to_string() + &*article.author.username
 				}
 			},
 			_=>"".to_string()
@@ -139,6 +141,26 @@ pub fn Article() -> impl IntoView {
 
 	let delete_article = move |_| {
 		delete_article_action.dispatch(());
+	};
+
+	let follow_action = create_action(move |_|{
+		async move {
+			match article_data.get() {
+				Some(Some(mut article)) =>{
+					let profile_info_option = follow_user(article.author.following,&*article.author.username).await;
+					if let Some(profile_info) = profile_info_option {
+						article.author = profile_info;
+						article_data.set(Option::from(article));
+					}
+
+				},
+				_ => logging::log!("no profile data")
+			};
+		}
+	});
+
+	let on_follow_click = move |_| {
+		follow_action.dispatch(());
 	};
 	view! {
     <div class="article-page">
@@ -208,7 +230,7 @@ pub fn Article() -> impl IntoView {
 					  <span class="date">{creation_date}</span>
 					</div>
 
-					<button class="btn btn-sm btn-outline-secondary">
+					<button class="btn btn-sm btn-outline-secondary" on:click=on_follow_click>
 					  <i class="ion-plus-round"></i>
 					  {follow_text}
 					</button>
