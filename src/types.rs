@@ -4,7 +4,6 @@ use chrono::prelude::*;
 pub const SESSION_TOKEN:&str = "session.token";
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
-#[serde(rename_all = "camelCase")]
 pub struct RegisterInfo {
     pub username: String,
     pub email: String,
@@ -12,7 +11,6 @@ pub struct RegisterInfo {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-#[serde(rename_all = "camelCase")]
 pub struct RegisterInfoWrapper {
     pub user: RegisterInfo,
 }
@@ -60,11 +58,12 @@ pub struct ProfileInfoWrapper {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
+#[serde(rename_all = "camelCase")]
 pub struct ArticleCreateUpdateInfo {
     pub title: String,
     pub description: String,
     pub body: String,
-    pub tagList: Vec<String>,
+    pub tag_list: Vec<String>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -73,16 +72,17 @@ pub struct ArticleCreateUpdateInfoWrapper {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
 pub struct ArticleInfo {
     pub slug: String,
     pub title: String,
     pub description: String,
     pub body: String,
-    pub tagList: Vec<String>,
-    pub createdAt: DateTime<Utc>,
-    pub updatedAt: DateTime<Utc>,
+    pub tag_list: Vec<String>,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
     pub favorited: bool,
-    pub favoritesCount: u32,
+    pub favorites_count: u32,
     pub author: ProfileInfo,
 }
 
@@ -111,7 +111,8 @@ pub struct TagListInfo {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
 pub struct ArticleListInfo {
     pub articles: Vec<ArticleInfo>,
-    pub articlesCount: u32,
+    pub articles_count: u32,
 }

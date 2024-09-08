@@ -6,10 +6,9 @@ use super::home_article_list_item;
 #[component]
 pub fn Home() -> impl IntoView {
   let user_info = expect_context::<RwSignal<UserInfo>>();
-  let (user_info_is_authenticated, _) = create_slice(
+  let user_info_is_authenticated = create_read_slice(
     user_info,
-    |user_info| user_info.token.clone(),
-    |user_info, token| user_info.token = token,
+    |user_info| user_info.is_authenticated(),
   );
 
   // tab handling
@@ -71,7 +70,7 @@ pub fn Home() -> impl IntoView {
       }
       let data = response.json::<ArticleListInfo>().await.ok()?;
       set_article_data(data.articles);
-      set_article_count(data.articlesCount);
+      set_article_count(data.articles_count);
       Some(())
     }
   });
@@ -86,7 +85,7 @@ pub fn Home() -> impl IntoView {
       if let Ok(token) = LocalStorage::get::<String>(SESSION_TOKEN) {
         builder = builder.bearer_auth(token);
       }
-      let mut query = vec![("offset",offset.to_string())];
+      let query = vec![("offset",offset.to_string())];
       builder = builder.query(&query);
 
       let response = builder
@@ -99,7 +98,7 @@ pub fn Home() -> impl IntoView {
 
       let data = response.json::<ArticleListInfo>().await.ok()?;
       set_article_data(data.articles);
-      set_article_count(data.articlesCount);
+      set_article_count(data.articles_count);
       Some(())
     }
   });
@@ -156,7 +155,7 @@ pub fn Home() -> impl IntoView {
                 <div class="feed-toggle">
                   <ul class="nav nav-pills outline-active">
                     <Show
-                      when=move || { user_info_is_authenticated().is_some() }
+                      when=move || user_info_is_authenticated()
                     >
                       <li class="nav-item">
                         <a class="nav-link" on:click=move |_| {set_current_tab("Personal".to_string());set_tab_tag(String::default());}>Your Feed</a>

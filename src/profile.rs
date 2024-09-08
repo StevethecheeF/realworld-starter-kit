@@ -10,38 +10,6 @@ struct ContactParams {
     user_id: Option<String>,
 }
 
-async fn handle_request(username_value:String, email_value:String, password_value:String) -> Result<UserInfoWrapper, String>{
-    let user_data = RegisterInfo {
-        username: username_value,
-        email: email_value,
-        password: password_value,
-    };
-    let login_data = RegisterInfoWrapper{
-        user: user_data,
-    };
-    let client = reqwest::Client::new();
-    let response = client
-        .post("http://localhost:3000/api/users")
-        .header("Content-Type", "application/json")
-        .json(&login_data)
-        .send()
-        .await;
-    if let Ok(data) = response {
-        if data.status().is_success() {
-            let data: Result<UserInfoWrapper, _> = data.json::<UserInfoWrapper>().await;
-            if let Ok(data) = data {
-                Ok(data)
-            } else {
-                Err("Error occurred".to_string())
-            }
-        } else {
-            Err("Error occurred".to_string())
-        }
-    } else {
-        Err("Error occurred".to_string())
-    }
-}
-
 #[component]
 pub fn Profile() -> impl IntoView {
     let params = use_params::<ContactParams>();
@@ -52,7 +20,11 @@ pub fn Profile() -> impl IntoView {
                 .unwrap_or_default()
         })
     };
-    let (is_following, set_is_following) = create_signal(false);
+    let user_info = expect_context::<RwSignal<UserInfo>>();
+    let user_info_is_authenticated = create_read_slice(
+        user_info,
+        |user_info| user_info.is_authenticated(),
+    );
 
     let async_data = create_resource(
         user_id,
@@ -70,12 +42,9 @@ pub fn Profile() -> impl IntoView {
             }
 
             let data = response.json::<ProfileInfoWrapper>().await.ok()?;
-            set_is_following.set(data.clone().profile.following);
             Some(data.profile)
         },
     );
-
-    let user_info = expect_context::<RwSignal<UserInfo>>();
 
     // follow
     let follow_text = move |is_following| {
@@ -93,7 +62,6 @@ pub fn Profile() -> impl IntoView {
                     let profile_info_option = follow_user(profile_info.following,&*user_id().unwrap_or_default()).await;
                     if let Some(profile_info) = profile_info_option {
                         async_data.set(Option::from(profile_info.clone()));
-                        set_is_following(profile_info.following);
                     }
 
                 }
@@ -138,7 +106,7 @@ pub fn Profile() -> impl IntoView {
             }
             let data = response.json::<ArticleListInfo>().await.ok()?;
             set_article_data(data.articles);
-            set_article_count(data.articlesCount);
+            set_article_count(data.articles_count);
             Some(())
         }
     });
@@ -162,6 +130,11 @@ pub fn Profile() -> impl IntoView {
             global_article_request.dispatch(());
         }
     };
+
+    let on_settings_click = move |_| {
+        let navigate = leptos_router::use_navigate();
+        navigate("/settings", Default::default());
+    };
     view! {
     <div class="profile-page">
       <div class="user-info">
@@ -174,14 +147,21 @@ pub fn Profile() -> impl IntoView {
                     <img src=profile.image class="user-img" />
                     <h4> { profile.username } </h4>
                     <p> { profile.bio } </p>
-                    <button class="btn btn-sm btn-outline-secondary action-btn" on:click=on_follow_click>
-                      <i class="ion-plus-round"></i>
-                      { follow_text(profile.following) }
-                    </button>
-                    <button class="btn btn-sm btn-outline-secondary action-btn">
-                      <i class="ion-gear-a"></i>
-                      Edit Profile Settings
-                    </button>
+
+                    <Show
+                      when=move || user_info_is_authenticated()
+                      fallback=move || view! {
+                        <button class="btn btn-sm btn-outline-secondary action-btn" on:click=on_follow_click>
+                            <i class="ion-plus-round"></i>
+                            { follow_text(profile.following) }
+                        </button>
+                      }
+                    >
+                        <button class="btn btn-sm btn-outline-secondary action-btn" on:click=on_settings_click>
+                          <i class="ion-gear-a"></i>
+                          Edit Profile Settings
+                        </button>
+                    </Show>
                   }.into_view(),
                   Some(_) => view! { <p>"Failed to load profile."</p> }.into_view(),
                   None => view! { <p>"Loading profile..."</p> }.into_view(),

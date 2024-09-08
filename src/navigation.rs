@@ -9,10 +9,9 @@ pub fn Navigation() -> impl IntoView {
         |user_info| user_info.username.clone(),
         |user_info, username| user_info.username = username,
     );
-    let (user_info_is_authenticated, _) = create_slice(
+    let user_info_is_authenticated = create_read_slice(
         user_info,
-        |user_info| user_info.token.clone(),
-        |user_info, token| user_info.token = token,
+        |user_info| user_info.is_authenticated(),
     );
 
     let profile_url = move || {
@@ -62,7 +61,7 @@ pub fn Navigation() -> impl IntoView {
 
     view! {
         <Show
-            when=move || { user_info_is_authenticated().is_some() }
+            when=move || user_info_is_authenticated()
             fallback=move ||  view! {{logged_out_view()}}
         >
             {logged_in_view()}

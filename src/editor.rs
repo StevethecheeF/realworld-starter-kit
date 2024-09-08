@@ -34,7 +34,7 @@ pub fn Editor() -> impl IntoView {
                 title: input_copy.0,
                 description: input_copy.1,
                 body: input_copy.2,
-                tagList: tags.get(),
+                tag_list: tags.get(),
             };
             let info_wrapper = ArticleCreateUpdateInfoWrapper {
                 article: info,
@@ -70,7 +70,7 @@ pub fn Editor() -> impl IntoView {
             if slug().is_none() {
                 let article_info = ArticleCreateUpdateInfo {
                     title:"".to_string(),
-                    tagList:vec![].into(),
+                    tag_list:vec![].into(),
                     description:"".to_string(),
                     body:"".to_string()
                 };
@@ -88,10 +88,10 @@ pub fn Editor() -> impl IntoView {
                 return None;
             }
             let data = response.json::<ArticleInfoWrapper>().await.ok()?;
-            set_tags(data.article.tagList.clone());
+            set_tags(data.article.tag_list.clone());
             let article_info = ArticleCreateUpdateInfo {
                 title:data.article.title,
-                tagList:data.article.tagList,
+                tag_list:data.article.tag_list,
                 description:data.article.description,
                 body:data.article.body,
             };

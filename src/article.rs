@@ -61,7 +61,6 @@ pub fn Article() -> impl IntoView {
 		}
 	};
 	let profile_link = move || {
-		let prefix = "/profile/";
 		match article_data.get(){
 			Some(Some(article)) =>"/profile/".to_string() +  &*article.author.username,
 			_=>"".to_string()
@@ -69,27 +68,19 @@ pub fn Article() -> impl IntoView {
 	};
 	let creation_date = move || {
 		match article_data.get(){
-			Some(Some(article)) => article.createdAt.format("%B %e, %Y").to_string(),
+			Some(Some(article)) => article.created_at.format("%B %e, %Y").to_string(),
 			_=>"".to_string()
 		}
 	};
 	let follow_text = move || {
 		match article_data.get(){
 			Some(Some(article)) => {
-				logging::log!("here, {:?}",article.author.following);
 				if article.author.following {
 					"Unfollow ".to_string() + &*article.author.username
 				} else {
 					"Follow ".to_string() + &*article.author.username
 				}
 			},
-			_=>"".to_string()
-		}
-	};
-	let profile_link = move || {
-		let prefix = "/editor/";
-		match article_data.get(){
-			Some(Some(article)) =>"/profile/".to_string() +  &*article.slug,
 			_=>"".to_string()
 		}
 	};
@@ -116,7 +107,7 @@ pub fn Article() -> impl IntoView {
 				Some(Some(article)) => {
 					let client = reqwest::Client::new();
 					let mut builder = client
-						.delete("http://localhost:3000/api/articles/".to_owned() + &slug().unwrap_or_default())
+						.delete("http://localhost:3000/api/articles/".to_owned() + &*article.slug)
 						.header("Content-Type", "application/json");
 
 					if let Ok(token) = LocalStorage::get::<String>(SESSION_TOKEN) {
@@ -183,7 +174,7 @@ pub fn Article() -> impl IntoView {
 					</button>
 					<button class="btn btn-sm btn-outline-primary" on:click=favorite_article>
 					  <i class="ion-heart"></i>
-					  Favorite Post <span class="counter">{article.favoritesCount}</span>
+					  Favorite Post <span class="counter">{article.favorites_count}</span>
 					</button>
 					<Show
 					  when=move || {can_edit()}
@@ -209,10 +200,9 @@ pub fn Article() -> impl IntoView {
 					<p>{article.body}</p>
 					<ul class="tag-list">
 						<For
-						  each=move || article.tagList.clone()
+						  each=move || article.tag_list.clone()
 						  key=|tag| tag.clone()
 						  children=move |tag| {
-							let tag_owned =tag.to_owned();
 							view!{<li class="tag-default tag-pill tag-outline">{tag}</li>}
 						 }
 						/>
@@ -236,7 +226,7 @@ pub fn Article() -> impl IntoView {
 					</button>
 					<button class="btn btn-sm btn-outline-primary" on:click=favorite_article>
 					  <i class="ion-heart"></i>
-					  Favorite Article <span class="counter">{article.favoritesCount}</span>
+					  Favorite Article <span class="counter">{article.favorites_count}</span>
 					</button>
 					<Show
 						when=move || Some(article.author.username.clone()) == user_info_username.get()

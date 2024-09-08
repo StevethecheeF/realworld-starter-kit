@@ -71,10 +71,10 @@ pub fn Setting() -> impl IntoView{
           .expect("<input> should be mounted")
           .value();
 
-      action.dispatch((username_value.to_string(), email_value.to_string(), password_value,bio_value.to_string(),image_value.to_string()));
+      action.dispatch((username_value.to_string(), email_value.to_string(), password_value.to_string(),bio_value.to_string(),image_value.to_string()));
     };
 
-    let on_logout_click = move |ev: leptos::ev::MouseEvent| {
+    let on_logout_click = move |_ev: leptos::ev::MouseEvent| {
       user_info.set(UserInfo::default());
       LocalStorage::delete(SESSION_TOKEN);
       let navigate = leptos_router::use_navigate();

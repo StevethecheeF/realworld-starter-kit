@@ -1,6 +1,5 @@
 use leptos::*;
 use crate::types::*;
-use gloo::storage::{LocalStorage, Storage};
 use super::helper::favorite_article_action;
 
 #[component]
@@ -9,15 +8,15 @@ pub fn HomeArticleListItem(article: ArticleInfo) -> impl IntoView {
   let author = article_clone.get().author;
   let author_profile_url = "/profile/".to_string() + &author.username.clone();
   let article_url = "/article/".to_string() + &article_clone.get().slug.clone();
-  let created_at = article_clone.get().createdAt.format("%B %e, %Y").to_string();
-  let (favorite_count, set_favorite_count) = create_signal(article_clone.get().favoritesCount);
+  let created_at = article_clone.get().created_at.format("%B %e, %Y").to_string();
+  let (favorite_count, set_favorite_count) = create_signal(article_clone.get().favorites_count);
 
   let favorite_article_action = create_action(move |_| {
     async move {
       let data = favorite_article_action(article_clone.get().favorited,&*article_clone.get().slug).await;
       if let Some(article_info) = data {
         set_article_clone(article_info.clone());
-        set_favorite_count(article_info.favoritesCount);
+        set_favorite_count(article_info.favorites_count);
         Some(())
       }else {
         None
@@ -45,7 +44,7 @@ pub fn HomeArticleListItem(article: ArticleInfo) -> impl IntoView {
           <p>{article_clone.get().description}</p>
           <span>Read more...</span>
           <ul class="tag-list">
-            {article_clone.get().tagList.into_iter()
+            {article_clone.get().tag_list.into_iter()
               .map(|tag| view! { <li class="tag-default tag-pill tag-outline">{tag}</li>})
               .collect_view()}
           </ul>
