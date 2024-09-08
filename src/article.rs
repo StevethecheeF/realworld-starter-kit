@@ -4,6 +4,7 @@ use super::types::*;
 use super::helper::favorite_article_action;
 use gloo::storage::{LocalStorage, Storage};
 use super::helper::follow_user;
+use super::article_comment_list;
 
 #[derive(Params, PartialEq)]
 struct ContactParams {
@@ -241,8 +242,10 @@ pub fn Article() -> impl IntoView {
 					</Show>
 				  </div>
 				</div>
-
-
+				{if let Some(slug_value) = slug() {
+					view! {<article_comment_list::ArticleCommentList slug=slug_value />}.into_view()
+				} else { view! {}.into_view()}
+				}
 			  </div>
 			}.into_view(),
 			Some(_) => view! { <p>"Failed to load."</p> }.into_view(),

@@ -8,8 +8,9 @@ mod setting;
 mod article;
 mod home;
 mod home_article_list_item;
-mod article_comments;
+mod article_comment_list;
 mod helper;
+mod article_comment_list_item;
 
 use leptos_router::*;
 use leptos::*;
