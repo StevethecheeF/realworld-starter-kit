@@ -135,7 +135,6 @@ pub fn Home() -> impl IntoView {
 
   };
   let on_pagination_click = move |page: u32| {
-    logging::log!("a");
     if current_page.get() != page {
       set_current_page(page);
       send_article_request(current_tab.get().to_string());
