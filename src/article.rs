@@ -168,18 +168,19 @@ pub fn Article() -> impl IntoView {
 					  <a href=profile_link class="author">{article.author.username.clone()}</a>
 					  <span class="date">{creation_date}</span>
 					</div>
-					<button class="btn btn-sm btn-outline-secondary">
-					  <i class="ion-plus-round"></i>
-					  {follow_text}
-					  <span class="counter"></span>
-					</button>
-					<button class="btn btn-sm btn-outline-primary" on:click=favorite_article>
-					  <i class="ion-heart"></i>
-					  Favorite Post <span class="counter">{article.favorites_count}</span>
-					</button>
 					<Show
 					  when=move || {can_edit()}
-					  fallback=move || view! {<span></span>}
+					  fallback=move || view! {
+						<button class="btn btn-sm btn-outline-secondary">
+						  <i class="ion-plus-round"></i>
+						  {follow_text}
+						  <span class="counter"></span>
+						</button>
+						<button class="btn btn-sm btn-outline-primary" on:click=favorite_article>
+						  <i class="ion-heart"></i>
+						  Favorite Post <span class="counter">{article.favorites_count}</span>
+						</button>
+					  }
 					>
 					  <button class="btn btn-sm btn-outline-secondary">
 						<i class="ion-edit"></i> Edit Article
@@ -220,18 +221,18 @@ pub fn Article() -> impl IntoView {
 					  <a href="" class="author">{article.author.username.clone()}</a>
 					  <span class="date">{creation_date}</span>
 					</div>
-
-					<button class="btn btn-sm btn-outline-secondary" on:click=on_follow_click>
-					  <i class="ion-plus-round"></i>
-					  {follow_text}
-					</button>
-					<button class="btn btn-sm btn-outline-primary" on:click=favorite_article>
-					  <i class="ion-heart"></i>
-					  Favorite Article <span class="counter">{article.favorites_count}</span>
-					</button>
 					<Show
 						when=move || Some(article.author.username.clone()) == user_info_username.get()
-						fallback=|| view! { }
+						fallback=move || view! {
+							<button class="btn btn-sm btn-outline-secondary" on:click=on_follow_click>
+							  <i class="ion-plus-round"></i>
+							  {follow_text}
+							</button>
+							<button class="btn btn-sm btn-outline-primary" on:click=favorite_article>
+							  <i class="ion-heart"></i>
+							  Favorite Article <span class="counter">{article.favorites_count}</span>
+							</button>
+						}
 					>
 						<button class="btn btn-sm btn-outline-secondary" href=profile_link >
 						  <i class="ion-edit"></i> Edit Article
