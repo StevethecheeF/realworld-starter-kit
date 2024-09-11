@@ -178,13 +178,13 @@ pub fn Profile() -> impl IntoView {
             <div class="articles-toggle">
               <ul class="nav nav-pills outline-active">
                 <li class="nav-item">
-                  <a class="nav-link active"
+                  <a class=move|| if current_tab.get() == "User" {"nav-link active"}else{"nav-link"}
                     href=""
                     on:click=move |_| set_current_tab("User".to_string())
                     >My Articles</a>
                 </li>
                 <li class="nav-item">
-                  <a class="nav-link"
+                  <a class=move|| if current_tab.get() == "Favorited" {"nav-link active"}else{"nav-link"}
                     href=""
                     on:click=move |_| set_current_tab("Favorited".to_string())
                     >Favorited Articles</a>

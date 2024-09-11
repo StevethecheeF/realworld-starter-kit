@@ -126,7 +126,6 @@ pub fn Home() -> impl IntoView {
   );
 
 
-
   // pagination
   let available_pages = move || {
     let page_count = (article_count.get() / 20) + 2;
@@ -154,21 +153,21 @@ pub fn Home() -> impl IntoView {
               <div class="col-md-9">
                 <div class="feed-toggle">
                   <ul class="nav nav-pills outline-active">
+                    <li class="nav-item">
+                      <a class=move|| if current_tab.get() == "Global" {"nav-link active"}else{"nav-link"} on:click=move |_| {set_current_tab("Global".to_string());set_tab_tag(String::default());}>Global Feed</a>
+                    </li>
                     <Show
                       when=move || user_info_is_authenticated()
                     >
                       <li class="nav-item">
-                        <a class="nav-link" on:click=move |_| {set_current_tab("Personal".to_string());set_tab_tag(String::default());}>Your Feed</a>
+                        <a class=move|| if current_tab.get() == "Personal" {"nav-link active"}else{"nav-link"} on:click=move |_| {set_current_tab("Personal".to_string());set_tab_tag(String::default());}>Your Feed</a>
                       </li>
                     </Show>
-                    <li class="nav-item">
-                      <a class="nav-link" on:click=move |_| {set_current_tab("Global".to_string());set_tab_tag(String::default());}>Global Feed</a>
-                    </li>
                     <Show
                       when=move || tab_tag() != String::default()
                     >
                       <li class="nav-item">
-                        <a class="nav-link">#{tab_tag()}</a>
+                        <a class="nav-link active">#{tab_tag()}</a>
                       </li>
                     </Show>
                   </ul>
@@ -209,7 +208,7 @@ pub fn Home() -> impl IntoView {
                                 let tag_owned =tag.to_owned();
                                 let onclick = move |_| {
                                   set_tab_tag(tag_owned.clone());
-                                  set_current_tab(tag_owned.clone());
+                                  set_current_tab(tag_owned.clone()+"_tag");
                                 };
                                 view!{<a href="" class="tag-pill tag-default" on:click=onclick>{tag}</a>}
                              }
