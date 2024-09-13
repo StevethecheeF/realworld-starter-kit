@@ -2,7 +2,7 @@ use leptos::*;
 use leptos_router::*;
 use gloo::storage::{LocalStorage, Storage};
 use crate::types::data_beans::{ArticleCreateUpdateInfo, ArticleCreateUpdateInfoWrapper, ArticleInfoWrapper};
-use crate::types::SESSION_TOKEN;
+use crate::types::{API_ENDPOINT, SESSION_TOKEN};
 
 #[derive(Params, PartialEq)]
 struct ContactParams {
@@ -42,7 +42,7 @@ pub fn Editor() -> impl IntoView {
             };
             if slug().is_none() {
                 let mut builder =  client
-                    .post("http://localhost:3000/api/articles/".to_owned())
+                    .post(format!("{}{}",API_ENDPOINT,"/articles/"))
                     .header("Content-Type", "application/json");
                 if let Ok(token) = LocalStorage::get::<String>(SESSION_TOKEN) {
                     builder = builder.bearer_auth(token);
@@ -52,7 +52,7 @@ pub fn Editor() -> impl IntoView {
                     .await;
             }else {
                 let mut builder = client
-                    .put("http://localhost:3000/api/articles/".to_owned() + &slug().unwrap_or_default())
+                    .put(format!("{}{}{}",API_ENDPOINT,"/articles/", slug().unwrap_or_default()))
                     .header("Content-Type", "application/json");
                 if let Ok(token) = LocalStorage::get::<String>(SESSION_TOKEN) {
                     builder = builder.bearer_auth(token);
@@ -79,7 +79,7 @@ pub fn Editor() -> impl IntoView {
             }
             let client = reqwest::Client::new();
             let response = client
-                .get("http://localhost:3000/api/articles/".to_owned() + &slug().unwrap_or_default())
+                .get(format!("{}{}{}",API_ENDPOINT,"/articles/", &slug().unwrap_or_default()))
                 .header("Content-Type", "application/json")
                 .send()
                 .await

@@ -1,7 +1,7 @@
 use leptos::*;
 use gloo::storage::{LocalStorage, Storage};
 use crate::types::data_beans::{UserInfo, UserInfoWrapper, UserUpdateInfo, UserUpdateInfoWrapper};
-use crate::types::SESSION_TOKEN;
+use crate::types::{API_ENDPOINT, SESSION_TOKEN};
 
 pub fn Setting() -> impl IntoView{
     let user_info = expect_context::<RwSignal<UserInfo>>();
@@ -28,7 +28,7 @@ pub fn Setting() -> impl IntoView{
       async move {
         let client = reqwest::Client::new();
         let mut builder =  client
-            .put("http://localhost:3000/api/user".to_owned())
+            .put(format!("{}{}",API_ENDPOINT,"/user"))
             .header("Content-Type", "application/json");
         if let Ok(token) = LocalStorage::get::<String>(SESSION_TOKEN) {
           builder = builder.bearer_auth(token);

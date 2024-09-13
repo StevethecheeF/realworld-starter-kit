@@ -16,7 +16,7 @@ pub fn ArticleCommentListItem(comment: CommentInfo) -> impl IntoView {
 		async move {
 			let client  = reqwest::Client::new();
 			let mut builder = client
-				.delete("http://localhost:3000/api/articles/".to_owned()+&*slug_clone+"/comments/"+&*comment_id.to_string())
+				.delete(format!("{}{}{}{}{}",API_ENDPOINT,"/articles/", slug_clone,"/comments/",comment_id))
 				.header("Content-Type", "application/json");
 			if let Ok(token) = LocalStorage::get::<String>(SESSION_TOKEN) {
 				builder = builder.bearer_auth(token);

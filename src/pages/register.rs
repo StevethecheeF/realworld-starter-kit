@@ -1,7 +1,7 @@
 use leptos::*;
 use gloo::storage::{LocalStorage, Storage};
 use crate::types::data_beans::{RegisterInfo, RegisterInfoWrapper, UserInfo, UserInfoWrapper};
-use crate::types::SESSION_TOKEN;
+use crate::types::{API_ENDPOINT, SESSION_TOKEN};
 
 async fn handle_request(username_value:String, email_value:String, password_value:String) -> Result<UserInfoWrapper, String>{
     let user_data = RegisterInfo {
@@ -14,7 +14,7 @@ async fn handle_request(username_value:String, email_value:String, password_valu
     };
     let client = reqwest::Client::new();
     let response = client
-        .post("http://localhost:3000/api/users")
+        .post(format!("{}{}",API_ENDPOINT,"/users"))
         .header("Content-Type", "application/json")
         .json(&login_data)
         .send()

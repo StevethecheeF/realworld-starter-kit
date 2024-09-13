@@ -1,12 +1,10 @@
 use gloo::storage::{LocalStorage, Storage};
 use crate::types::data_beans::{ArticleInfo, ArticleInfoWrapper, ProfileInfo, ProfileInfoWrapper};
-use crate::types::SESSION_TOKEN;
+use crate::types::{API_ENDPOINT, SESSION_TOKEN};
 
 pub async fn favorite_article_action(is_favorite:bool, article_slug: &str) -> Option<ArticleInfo> {
 	let client = reqwest::Client::new();
-	let mut url = "http://localhost:3000/api/articles/".to_owned();
-	url.push_str(article_slug);
-	url.push_str("/favorite");
+	let url = format!("{}{}{}{}",API_ENDPOINT,"/articles/", article_slug, "/favorite");
 
 	let mut builder;
 	if is_favorite {
@@ -34,10 +32,11 @@ pub async fn favorite_article_action(is_favorite:bool, article_slug: &str) -> Op
 pub async fn follow_user(is_following:bool, username: &str) -> Option<ProfileInfo>{
 	let client = reqwest::Client::new();
 	let mut builder;
+	let url = format!("{}{}{}{}",API_ENDPOINT,"/profiles/",username,"/follow");
 	if is_following {
-		builder = client.delete("http://localhost:3000/api/profiles/".to_owned() + username + "/follow");
+		builder = client.delete(url);
 	}else {
-		builder = client.post("http://localhost:3000/api/profiles/".to_owned() + username + "/follow");
+		builder = client.post(url);
 	}
 	builder = builder.header("Content-Type", "application/json");
 	if let Ok(token) = LocalStorage::get::<String>(SESSION_TOKEN) {

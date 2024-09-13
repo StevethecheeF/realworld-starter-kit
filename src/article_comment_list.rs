@@ -1,7 +1,7 @@
 use leptos::*;
 use gloo::storage::{LocalStorage, Storage};
 use crate::types::data_beans::{CommentCreateInfo, CommentCreateInfoWrapper, CommentInfoWrapper, CommentListInfo, UserInfo};
-use crate::types::SESSION_TOKEN;
+use crate::types::{API_ENDPOINT, SESSION_TOKEN};
 use super::article_comment_list_item;
 
 
@@ -18,7 +18,7 @@ pub fn ArticleCommentList(slug:String) -> impl IntoView {
 			async move {
 				let client = reqwest::Client::new();
 				let mut builder = client
-					.get("http://localhost:3000/api/articles/".to_owned() + &slug_clone + "/comments")
+					.get(format!("{}{}{}{}",API_ENDPOINT,"/articles/", &slug_clone ,"/comments"))
 					.header("Content-Type", "application/json");
 
 				if let Ok(token) = LocalStorage::get::<String>(SESSION_TOKEN) {
@@ -43,7 +43,7 @@ pub fn ArticleCommentList(slug:String) -> impl IntoView {
 		async move {
 			let client  = reqwest::Client::new();
 			let mut builder = client
-				.post("http://localhost:3000/api/articles/".to_owned()+&*slug_clone+"/comments")
+				.post(format!("{}{}{}{}",API_ENDPOINT, "/articles/", slug_clone, "/comments"))
 				.header("Content-Type", "application/json");
 			if let Ok(token) = LocalStorage::get::<String>(SESSION_TOKEN) {
 				builder = builder.bearer_auth(token);

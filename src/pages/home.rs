@@ -2,7 +2,7 @@ use leptos::*;
 use gloo::storage::{LocalStorage, Storage};
 use crate::home_article_list_item;
 use crate::types::data_beans::{ArticleListInfo, TagListInfo, UserInfo};
-use crate::types::SESSION_TOKEN;
+use crate::types::{API_ENDPOINT, SESSION_TOKEN};
 
 #[component]
 pub fn Home() -> impl IntoView {
@@ -18,7 +18,7 @@ pub fn Home() -> impl IntoView {
     move |_| async move {
       let client = reqwest::Client::new();
       let mut builder = client
-          .get("http://localhost:3000/api/tags")
+          .get(format!("{}{}",API_ENDPOINT,"/tags"))
           .header("Content-Type", "application/json");
 
       if let Ok(token) = LocalStorage::get::<String>(SESSION_TOKEN) {
@@ -50,7 +50,7 @@ pub fn Home() -> impl IntoView {
     let input_copy = input.to_owned();
     async move {
       let mut builder = client
-          .get("http://localhost:3000/api/articles".to_owned())
+          .get(format!("{}{}",API_ENDPOINT,"/articles"))
           .header("Content-Type", "application/json");
       if let Ok(token) = LocalStorage::get::<String>(SESSION_TOKEN) {
         builder = builder.bearer_auth(token);
@@ -81,7 +81,7 @@ pub fn Home() -> impl IntoView {
     let offset = (current_page.get() - 1) * 20;
     async move {
       let mut builder = client
-          .get("http://localhost:3000/api/articles/feed".to_owned())
+          .get(format!("{}{}",API_ENDPOINT, "/articles/feed"))
           .header("Content-Type", "application/json");
       if let Ok(token) = LocalStorage::get::<String>(SESSION_TOKEN) {
         builder = builder.bearer_auth(token);

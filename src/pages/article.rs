@@ -4,7 +4,7 @@ use crate::helper::{favorite_article_action,follow_user};
 use gloo::storage::{LocalStorage, Storage};
 use crate::article_comment_list;
 use crate::types::data_beans::{ArticleInfoWrapper, UserInfo};
-use crate::types::SESSION_TOKEN;
+use crate::types::{API_ENDPOINT, SESSION_TOKEN};
 
 #[derive(Params, PartialEq)]
 struct ContactParams {
@@ -30,7 +30,7 @@ pub fn Article() -> impl IntoView {
 			}
 			let client = reqwest::Client::new();
 			let response = client
-				.get("http://localhost:3000/api/articles/".to_owned() + &slug().unwrap_or_default())
+				.get(format!("{}{}{}",API_ENDPOINT,"/articles/", slug().unwrap_or_default()))
 				.header("Content-Type", "application/json")
 				.send()
 				.await
@@ -108,7 +108,7 @@ pub fn Article() -> impl IntoView {
 				Some(Some(article)) => {
 					let client = reqwest::Client::new();
 					let mut builder = client
-						.delete("http://localhost:3000/api/articles/".to_owned() + &*article.slug)
+						.delete(format!("{}{}{}",API_ENDPOINT,"/articles/", article.slug))
 						.header("Content-Type", "application/json");
 
 					if let Ok(token) = LocalStorage::get::<String>(SESSION_TOKEN) {
