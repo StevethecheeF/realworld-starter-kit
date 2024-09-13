@@ -1,5 +1,5 @@
 use leptos::*;
-use super::types::*;
+use crate::types::*;
 
 #[component]
 pub fn Navigation() -> impl IntoView {
@@ -60,13 +60,18 @@ pub fn Navigation() -> impl IntoView {
     };
 
     view! {
-        <Show
-            when=move || user_info_is_authenticated()
-            fallback=move ||  view! {{logged_out_view()}}
-        >
-            {logged_in_view()}
+        <nav class="navbar navbar-light">
+            <div class="container">
+                <a class="navbar-brand" href="/">conduit</a>
+                <Show
+                    when=move || user_info_is_authenticated()
+                    fallback=move ||  view! {{logged_out_view()}}
+                >
+                    {logged_in_view()}
 
-        </Show>
+                </Show>
+            </div>
+        </nav>
     }
 
 
