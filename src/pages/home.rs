@@ -1,7 +1,8 @@
 use leptos::*;
-use crate::types::*;
 use gloo::storage::{LocalStorage, Storage};
 use crate::home_article_list_item;
+use crate::types::data_beans::{ArticleListInfo, TagListInfo, UserInfo};
+use crate::types::SESSION_TOKEN;
 
 #[component]
 pub fn Home() -> impl IntoView {

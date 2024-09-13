@@ -1,6 +1,7 @@
 use leptos::*;
-use super::types::*;
 use gloo::storage::{LocalStorage, Storage};
+use crate::types::data_beans::{CommentCreateInfo, CommentCreateInfoWrapper, CommentInfoWrapper, CommentListInfo, UserInfo};
+use crate::types::SESSION_TOKEN;
 use super::article_comment_list_item;
 
 

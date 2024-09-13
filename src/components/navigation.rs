@@ -1,5 +1,5 @@
 use leptos::*;
-use crate::types::*;
+use crate::types::data_beans::UserInfo;
 
 #[component]
 pub fn Navigation() -> impl IntoView {

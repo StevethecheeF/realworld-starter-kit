@@ -1,6 +1,7 @@
 use leptos::*;
-use crate::types::*;
 use gloo::storage::{LocalStorage, Storage};
+use crate::types::data_beans::{RegisterInfo, RegisterInfoWrapper, UserInfo, UserInfoWrapper};
+use crate::types::SESSION_TOKEN;
 
 async fn handle_request(username_value:String, email_value:String, password_value:String) -> Result<UserInfoWrapper, String>{
     let user_data = RegisterInfo {

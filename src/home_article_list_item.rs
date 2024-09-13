@@ -1,5 +1,5 @@
 use leptos::*;
-use crate::types::*;
+use crate::types::data_beans::ArticleInfo;
 use super::helper::favorite_article_action;
 
 #[component]

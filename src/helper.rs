@@ -1,5 +1,6 @@
 use gloo::storage::{LocalStorage, Storage};
-use crate::types::*;
+use crate::types::data_beans::{ArticleInfo, ArticleInfoWrapper, ProfileInfo, ProfileInfoWrapper};
+use crate::types::SESSION_TOKEN;
 
 pub async fn favorite_article_action(is_favorite:bool, article_slug: &str) -> Option<ArticleInfo> {
 	let client = reqwest::Client::new();

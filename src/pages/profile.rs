@@ -1,9 +1,10 @@
 use leptos::*;
-use crate::types::*;
 use leptos_router::*;
 use gloo::storage::{LocalStorage, Storage};
 use crate::helper::follow_user;
 use crate::home_article_list_item;
+use crate::types::data_beans::{ArticleListInfo, ProfileInfoWrapper, UserInfo};
+use crate::types::SESSION_TOKEN;
 
 #[derive(Params, PartialEq)]
 struct ContactParams {

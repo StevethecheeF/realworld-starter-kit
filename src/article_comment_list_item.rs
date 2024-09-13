@@ -1,6 +1,6 @@
 use leptos::*;
-use super::types::*;
 use gloo::storage::{LocalStorage, Storage};
+use crate::types::data_beans::{CommentInfo, UserInfo};
 
 #[component]
 pub fn ArticleCommentListItem(comment: CommentInfo) -> impl IntoView {

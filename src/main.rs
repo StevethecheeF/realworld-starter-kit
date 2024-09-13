@@ -9,7 +9,7 @@ mod components;
 
 use leptos_router::*;
 use leptos::*;
-use crate::types::UserInfo;
+use crate::types::data_beans::UserInfo;
 
 use pages::{
     login::Login,
@@ -23,6 +23,7 @@ use components::{
     footer::Footer,
     navigation::Navigation
 };
+
 
 
 fn main() {

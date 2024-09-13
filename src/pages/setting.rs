@@ -1,6 +1,7 @@
 use leptos::*;
-use crate::types::*;
 use gloo::storage::{LocalStorage, Storage};
+use crate::types::data_beans::{UserInfo, UserInfoWrapper, UserUpdateInfo, UserUpdateInfoWrapper};
+use crate::types::SESSION_TOKEN;
 
 pub fn Setting() -> impl IntoView{
     let user_info = expect_context::<RwSignal<UserInfo>>();
