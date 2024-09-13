@@ -1,8 +1,8 @@
 use leptos::*;
 use gloo::storage::{LocalStorage, Storage};
-use crate::home_article_list_item;
 use crate::types::data_beans::{ArticleListInfo, TagListInfo, UserInfo};
 use crate::types::{API_ENDPOINT, SESSION_TOKEN};
+use crate::components::article_list_item::ArticleListItem;
 
 #[component]
 pub fn Home() -> impl IntoView {
@@ -178,7 +178,7 @@ pub fn Home() -> impl IntoView {
                   key=|article| article.slug.clone()
                   let:child
                 >
-                  <home_article_list_item::HomeArticleListItem article=child />
+                  <ArticleListItem article=child />
                 </For>
                 <ul class="pagination">
                  <For

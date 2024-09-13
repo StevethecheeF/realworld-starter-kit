@@ -2,8 +2,7 @@ use leptos::*;
 use gloo::storage::{LocalStorage, Storage};
 use crate::types::data_beans::{CommentCreateInfo, CommentCreateInfoWrapper, CommentInfoWrapper, CommentListInfo, UserInfo};
 use crate::types::{API_ENDPOINT, SESSION_TOKEN};
-use super::article_comment_list_item;
-
+use crate::components::article_comment_list_item::ArticleCommentListItem;
 
 
 #[component]
@@ -96,7 +95,7 @@ pub fn ArticleCommentList(slug:String) -> impl IntoView {
 					  key=|comment| comment.id.clone()
 					  let:child
 					>
-						<article_comment_list_item::ArticleCommentListItem comment=child />
+						<ArticleCommentListItem comment=child />
 					</For>
 				}.into_view(),
 				Some(_) => view! { <p>"Failed to load."</p> }.into_view(),

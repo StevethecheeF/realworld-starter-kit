@@ -1,9 +1,9 @@
 use leptos::*;
 use crate::types::data_beans::ArticleInfo;
-use super::helper::favorite_article_action;
+use crate::helper::favorite_article_action;
 
 #[component]
-pub fn HomeArticleListItem(article: ArticleInfo) -> impl IntoView {
+pub fn ArticleListItem(article: ArticleInfo) -> impl IntoView {
   let (article_clone,set_article_clone) = create_signal(article);
   let author = article_clone.get().author;
   let author_profile_url = "/profile/".to_string() + &author.username.clone();

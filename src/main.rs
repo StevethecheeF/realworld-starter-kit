@@ -1,16 +1,12 @@
-mod home_article_list_item;
-mod article_comment_list;
 mod helper;
-mod article_comment_list_item;
 
-mod pages;
 mod types;
-mod components;
 
 use leptos_router::*;
 use leptos::*;
 use crate::types::data_beans::UserInfo;
 
+mod pages;
 use pages::{
     login::Login,
     register::Register, setting::Setting,
@@ -19,6 +15,7 @@ use pages::{
     article::Article, home::Home
 };
 
+mod components;
 use components::{
     footer::Footer,
     navigation::Navigation

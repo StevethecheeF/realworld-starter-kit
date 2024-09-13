@@ -2,9 +2,9 @@ use leptos::*;
 use leptos_router::*;
 use gloo::storage::{LocalStorage, Storage};
 use crate::helper::follow_user;
-use crate::home_article_list_item;
 use crate::types::data_beans::{ArticleListInfo, ProfileInfoWrapper, UserInfo};
 use crate::types::{API_ENDPOINT, SESSION_TOKEN};
+use crate::components::article_list_item::ArticleListItem;
 
 #[derive(Params, PartialEq)]
 struct ContactParams {
@@ -197,7 +197,7 @@ pub fn Profile() -> impl IntoView {
               key=|article| article.slug.clone()
               let:child
             >
-              <home_article_list_item::HomeArticleListItem article=child />
+              <ArticleListItem article=child />
             </For>
             <ul class="pagination">
                 <For

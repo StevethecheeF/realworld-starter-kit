@@ -2,9 +2,9 @@ use leptos::*;
 use leptos_router::*;
 use crate::helper::{favorite_article_action,follow_user};
 use gloo::storage::{LocalStorage, Storage};
-use crate::article_comment_list;
 use crate::types::data_beans::{ArticleInfoWrapper, UserInfo};
 use crate::types::{API_ENDPOINT, SESSION_TOKEN};
+use crate::components::article_comment_list::ArticleCommentList;
 
 #[derive(Params, PartialEq)]
 struct ContactParams {
@@ -244,7 +244,7 @@ pub fn Article() -> impl IntoView {
 				  </div>
 				</div>
 				{if let Some(slug_value) = slug() {
-					view! {<article_comment_list::ArticleCommentList slug=slug_value />}.into_view()
+					view! {<ArticleCommentList slug=slug_value />}.into_view()
 				} else { view! {}.into_view()}
 				}
 			  </div>
