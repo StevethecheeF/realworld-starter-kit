@@ -244,7 +244,8 @@ pub fn Article() -> impl IntoView {
 				  </div>
 				</div>
 				{if let Some(slug_value) = slug() {
-					view! {<ArticleCommentList slug=slug_value />}.into_view()
+					let slug_signal = Signal::derive(move || slug_value.clone());
+					view! {<ArticleCommentList slug=slug_signal />}.into_view()
 				} else { view! {}.into_view()}
 				}
 			  </div>

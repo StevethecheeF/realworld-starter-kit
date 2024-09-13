@@ -6,18 +6,15 @@ use crate::components::article_comment_list_item::ArticleCommentListItem;
 
 
 #[component]
-pub fn ArticleCommentList(slug:String) -> impl IntoView {
+pub fn ArticleCommentList(slug:Signal<String>) -> impl IntoView {
 	let user_info = expect_context::<RwSignal<UserInfo>>();
-	let slug_copy = slug.clone();
-	let slug_copy2 = slug.clone();
 	let comment_data = create_resource(
 		|| (),
 		move |_| {
-			let slug_clone = slug.clone();
 			async move {
 				let client = reqwest::Client::new();
 				let mut builder = client
-					.get(format!("{}{}{}{}",API_ENDPOINT,"/articles/", &slug_clone ,"/comments"))
+					.get(format!("{}{}{}{}",API_ENDPOINT,"/articles/", slug.get() ,"/comments"))
 					.header("Content-Type", "application/json");
 
 				if let Ok(token) = LocalStorage::get::<String>(SESSION_TOKEN) {
@@ -74,7 +71,7 @@ pub fn ArticleCommentList(slug:String) -> impl IntoView {
 		let value = input_element()
 			.expect("<input> should be mounted")
 			.value();
-		save_comment_action.dispatch((value.to_string(),slug_copy2.clone()))
+		save_comment_action.dispatch((value.to_string(),slug.get()))
 	};
 	view! {
 		<div class="row">
