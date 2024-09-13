@@ -1,9 +1,9 @@
 use leptos::*;
-use super::types::*;
+use crate::types::*;
 use leptos_router::*;
 use gloo::storage::{LocalStorage, Storage};
-use super::helper::follow_user;
-use super::home_article_list_item;
+use crate::helper::follow_user;
+use crate::home_article_list_item;
 
 #[derive(Params, PartialEq)]
 struct ContactParams {

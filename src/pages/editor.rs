@@ -1,5 +1,5 @@
 use leptos::*;
-use super::types::*;
+use crate::types::*;
 use leptos_router::*;
 use gloo::storage::{LocalStorage, Storage};
 

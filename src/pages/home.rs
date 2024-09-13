@@ -1,7 +1,7 @@
 use leptos::*;
-use super::types::*;
+use crate::types::*;
 use gloo::storage::{LocalStorage, Storage};
-use super::home_article_list_item;
+use crate::home_article_list_item;
 
 #[component]
 pub fn Home() -> impl IntoView {

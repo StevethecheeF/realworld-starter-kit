@@ -1,10 +1,9 @@
 use leptos::*;
 use leptos_router::*;
-use super::types::*;
-use super::helper::favorite_article_action;
+use crate::types::*;
+use crate::helper::{favorite_article_action,follow_user};
 use gloo::storage::{LocalStorage, Storage};
-use super::helper::follow_user;
-use super::article_comment_list;
+use crate::article_comment_list;
 
 #[derive(Params, PartialEq)]
 struct ContactParams {

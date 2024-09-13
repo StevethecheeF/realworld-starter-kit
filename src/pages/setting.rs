@@ -1,5 +1,5 @@
 use leptos::*;
-use super::types::*;
+use crate::types::*;
 use gloo::storage::{LocalStorage, Storage};
 
 pub fn Setting() -> impl IntoView{

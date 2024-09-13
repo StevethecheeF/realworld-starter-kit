@@ -1,5 +1,5 @@
 use leptos::*;
-use super::types::*;
+use crate::types::*;
 use gloo::storage::{LocalStorage, Storage};
 
 async fn handle_request(username_value:String, email_value:String, password_value:String) -> Result<UserInfoWrapper, String>{

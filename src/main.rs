@@ -1,20 +1,22 @@
-mod login;
-mod register;
-mod types;
 mod navigation;
-mod profile;
-mod editor;
-mod setting;
-mod article;
-mod home;
 mod home_article_list_item;
 mod article_comment_list;
 mod helper;
 mod article_comment_list_item;
 
+mod pages;
+mod types;
+
 use leptos_router::*;
 use leptos::*;
 use crate::types::UserInfo;
+use pages::login::Login;
+use pages::register::Register;
+use pages::setting::Setting;
+use pages::profile::Profile;
+use pages::editor::Editor;
+use pages::article::Article;
+use pages::home::Home;
 
 fn main() {
     let user_info = create_rw_signal(UserInfo::default());
@@ -30,14 +32,14 @@ fn main() {
         <Router>
           <main>
             <Routes>
-              <Route path="/" view=home::Home/>/>
-              <Route path="/login" view=login::Login/>
-              <Route path="/register" view=register::Register/>
-              <Route path="/profile/:user_id" view=profile::Profile/>
-              <Route path="/settings" view=setting::Setting/>
-              <Route path="/editor" view=editor::Editor/>
-              <Route path="/editor/:slug" view=editor::Editor/>
-              <Route path="/article/:slug" view=article::Article/>
+              <Route path="/" view=Home/>/>
+              <Route path="/login" view=Login/>
+              <Route path="/register" view=Register/>
+              <Route path="/profile/:user_id" view=Profile/>
+              <Route path="/settings" view=Setting/>
+              <Route path="/editor" view=Editor/>
+              <Route path="/editor/:slug" view=Editor/>
+              <Route path="/article/:slug" view=Article/>
             </Routes>
           </main>
         </Router>
