@@ -1,6 +1,6 @@
 use leptos::*;
 use crate::types::data_beans::ArticleInfo;
-use crate::helper::favorite_article_action;
+use crate::helper::actions::favorite_article_action;
 
 #[component]
 pub fn ArticleListItem(article: ArticleInfo) -> impl IntoView {

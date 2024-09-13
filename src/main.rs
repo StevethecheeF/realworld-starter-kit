@@ -1,10 +1,10 @@
-mod helper;
-
-mod types;
-
 use leptos_router::*;
 use leptos::*;
 use crate::types::data_beans::UserInfo;
+
+mod helper;
+
+mod types;
 
 mod pages;
 use pages::{
@@ -20,7 +20,6 @@ use components::{
     footer::Footer,
     navigation::Navigation
 };
-
 
 
 fn main() {

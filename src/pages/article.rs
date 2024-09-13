@@ -1,6 +1,6 @@
 use leptos::*;
 use leptos_router::*;
-use crate::helper::{favorite_article_action,follow_user};
+use crate::helper::actions::{favorite_article_action,follow_user};
 use gloo::storage::{LocalStorage, Storage};
 use crate::types::data_beans::{ArticleInfoWrapper, UserInfo};
 use crate::types::{API_ENDPOINT, SESSION_TOKEN};

@@ -1,7 +1,7 @@
 use leptos::*;
 use leptos_router::*;
 use gloo::storage::{LocalStorage, Storage};
-use crate::helper::follow_user;
+use crate::helper::actions::follow_user;
 use crate::types::data_beans::{ArticleListInfo, ProfileInfoWrapper, UserInfo};
 use crate::types::{API_ENDPOINT, SESSION_TOKEN};
 use crate::components::article_list_item::ArticleListItem;
